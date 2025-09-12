@@ -1,0 +1,191 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Contact Us - County Cyber Meru{% endblock %}
+
+{% block content %}
+<!-- Contact Hero Section -->
+<section class="hero-section" style="background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <h1 class="display-4 fw-bold mb-4 animate-slide-left">Get In Touch</h1>
+                <p class="lead mb-4 animate-slide-left" style="animation-delay: 0.2s;">
+                    We'd love to hear from you. Reach out to us for any inquiries or support.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Info Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="text-gradient">Contact Information</h2>
+                <p class="lead text-secondary">Multiple ways to reach us</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="service-card text-center h-100">
+                    <div class="service-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Visit Us</h4>
+                    <p class="text-secondary mb-2">123 Cyber Street</p>
+                    <p class="text-secondary">Meru Town, Kenya</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Get Directions</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="service-card text-center h-100">
+                    <div class="service-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Call Us</h4>
+                    <p class="text-secondary mb-2">Main: +254 700 883 086</p>
+                    <p class="text-secondary">Support: +254 7xx xxx xxx</p>
+                    <a href="tel:+254712345678" class="btn btn-outline-primary btn-sm">Call Now</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="service-card text-center h-100">
+                    <div class="service-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Email Us</h4>
+                    <p class="text-secondary mb-2">Info: countycompz@gmail.com</p>
+                    <p class="text-secondary">Support: countycompz@gmail.com</p>
+                    <a href="mailto:countycompz@gmail.com" class="btn btn-outline-primary btn-sm">Send Email</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="service-card">
+                    <div class="text-center mb-5">
+                        <h2 class="text-gradient">Send us a Message</h2>
+                        <p class="text-secondary">Fill out the form below and we'll get back to you promptly</p>
+                    </div>
+                    
+                    <form method="post" class="contact-form">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Full Name *</label>
+                                    <input type="text" class="form-control form-control-lg" placeholder="Your full name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Email Address *</label>
+                                    <input type="email" class="form-control form-control-lg" placeholder="your.email@example.com" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Phone Number</label>
+                                    <input type="tel" class="form-control form-control-lg" placeholder="+254 XXX XXX XXX">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Subject *</label>
+                                    <input type="text" class="form-control form-control-lg" placeholder="What is this regarding?" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Message *</label>
+                                    <textarea class="form-control form-control-lg" rows="5" placeholder="Tell us how we can help you..." required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Business Hours Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div class="service-card">
+                    <h3 class="text-gradient text-center mb-4">Business Hours</h3>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Monday - Friday:</span>
+                                <span class="text-secondary">8:00 AM - 6:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Saturday:</span>
+                                <span class="text-secondary">9:00 AM - 4:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Sunday:</span>
+                                <span class="text-secondary">10:00 AM - 2:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Holidays:</span>
+                                <span class="text-secondary">Closed</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Emergency printing services</strong> available outside business hours
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="service-card">
+                    <h3 class="text-gradient text-center mb-4">Find Our Location</h3>
+                    <div class="map-placeholder text-center p-5 rounded-3" style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
+                        <i class="fas fa-map-marked-alt fa-4x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Interactive Map</h5>
+                        <p class="text-secondary">Map integration will be added here</p>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open in Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
