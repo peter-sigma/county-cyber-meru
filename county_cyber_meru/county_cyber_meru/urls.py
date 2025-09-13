@@ -7,7 +7,7 @@ from dashboard.views import dashboard
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/', dashboard, name='dashboard'),
-    
+    path('templates/', include('template_manager.urls')),
     path('categories/', include('categories.urls')),
     path('', include('core.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

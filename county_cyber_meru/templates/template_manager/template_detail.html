@@ -1,0 +1,263 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ template.title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'template_manager:template-list' %}">Templates</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'template_manager:category-detail' template.category.slug %}">{{ template.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ template.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="card rounded p-3 mb-3 bg-white">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h1 class="h4 fw-bold text-gradient">{{ template.title }}</h1>
+                    {% if template.is_verified %}
+                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Verified</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Pending</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted small mb-0">{{ template.description }}</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="card border rounded p-3 mb-3 bg-white small">
+                <div class="d-flex gap-4 text-center">
+                    <div>
+                        <div class="fw-bold text-primary">{{ template.download_count }}</div>
+                        <div class="text-muted">Downloads</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-primary">{{ template.ratings.count }}</div>
+                        <div class="text-muted">Reviews</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-primary">
+                            {% if template.get_average_rating %}
+                                {{ template.get_average_rating }}/5
+                            {% else %}-{% endif %}
+                        </div>
+                        <div class="text-muted">Rating</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Uploader Info -->
+            <div class="card border rounded p-3 mb-3 bg-white small">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                         style="width:40px; height:40px; background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));">
+                        {{ template.uploaded_by.username|first|upper }}
+                    </div>
+                    <div class="ms-2">
+                        <div><strong>{{ template.uploaded_by.username }}</strong></div>
+                        <div class="text-muted">Uploaded on {{ template.uploaded_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Sidebar -->
+<div class="col-lg-4">
+    <!-- Preview Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="detail-card p-4">
+            <h6 class="fw-semibold mb-3 text-primary">
+                <i class="fas fa-eye me-2"></i>Preview
+            </h6>
+            
+            {% if template.thumbnail %}
+            <div class="preview-container mb-3">
+                <img src="{{ template.thumbnail.url }}" alt="{{ template.title }}" 
+                     class="img-fluid rounded preview-image">
+                <div class="preview-overlay">
+                    <a href="{{ template.thumbnail.url }}" data-lightbox="preview" class="preview-btn">
+                        <i class="fas fa-expand"></i>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4 bg-light rounded-3 mb-3">
+                <div class="file-icon mb-2">
+                    <i class="fas fa-file-{{ template.document_type|lower }} fa-3x text-primary"></i>
+                </div>
+                <p class="text-muted small mb-0">Preview not available</p>
+            </div>
+            {% endif %}
+            
+            <div class="text-center">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Download for full editable file
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing & Action Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h6 class="fw-semibold mb-3 text-primary">
+                <i class="fas fa-tag me-2"></i>Pricing & Download
+            </h6>
+            
+            <!-- Price Display -->
+            <div class="text-center mb-4">
+                {% if template.price %}
+                <div class="price-display">
+                    <span class="h3 fw-bold text-success">KSh {{ template.price }}</span>
+                    <div class="text-muted small">One-time purchase</div>
+                </div>
+                {% else %}
+                <div class="price-display">
+                    <span class="h3 fw-bold text-success">Free</span>
+                    <div class="text-muted small">No cost download</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Download Button -->
+            <div class="mb-4">
+                <a href="{% url 'template_manager:template-download' template.pk %}" 
+                   class="btn btn-primary w-100 btn-lg download-btn">
+                    <i class="fas fa-download me-2"></i>
+                    Download Now
+                </a>
+            </div>
+
+            <!-- Features -->
+            <div class="features-list">
+                <h6 class="fw-semibold mb-2 text-primary">
+                    <i class="fas fa-gift me-2"></i>What's Included
+                </h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="small">Full editable source file</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="small">Print-ready quality</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="small">Professional design</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="small">Unlimited usage rights</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="small">Instant access</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- File Info -->
+            <div class="file-info mt-4 pt-3 border-top">
+                <h6 class="fw-semibold mb-2 text-primary">
+                    <i class="fas fa-info-circle me-2"></i>File Details
+                </h6>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Format:</span>
+                    <span class="fw-semibold">{{ template.get_file_extension|upper }}</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Size:</span>
+                    <span class="fw-semibold">{{ template.file.size|filesizeformat }}</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span class="text-muted">Downloads:</span>
+                    <span class="fw-semibold">{{ template.download_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h6 class="fw-semibold mb-3 text-primary">
+                <i class="fas fa-chart-line me-2"></i>Template Stats
+            </h6>
+            
+            <div class="stats-grid">
+                <div class="stat-item text-center">
+                    <div class="stat-number text-primary fw-bold">{{ template.download_count }}</div>
+                    <div class="stat-label small text-muted">Downloads</div>
+                </div>
+                <div class="stat-item text-center">
+                    <div class="stat-number text-primary fw-bold">{{ template.ratings.count }}</div>
+                    <div class="stat-label small text-muted">Reviews</div>
+                </div>
+                <div class="stat-item text-center">
+                    <div class="stat-number text-primary fw-bold">
+                        {% if template.get_average_rating %}{{ template.get_average_rating }}{% else %}0{% endif %}
+                    </div>
+                    <div class="stat-label small text-muted">Rating</div>
+                </div>
+            </div>
+
+            <div class="mt-3 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">Uploaded:</span>
+                    <span class="fw-semibold">{{ template.uploaded_at|date:"M d, Y" }}</span>
+                </div>
+                {% if template.is_verified %}
+                <div class="d-flex justify-content-between align-items-center small mt-1">
+                    <span class="text-muted">Verified:</span>
+                    <span class="fw-semibold">{{ template.verified_at|date:"M d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    <!-- Related Templates -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h5 class="fw-bold text-gradient mb-2">Related Templates</h5>
+            <div class="row g-2">
+                {% for related in related_templates %}
+                <div class="col-md-4">
+                    <div class="border rounded p-2 h-100 bg-white small">
+                        <h6 class="fw-semibold small">{{ related.title|truncatewords:4 }}</h6>
+                        <p class="text-muted small mb-1">{{ related.description|truncatewords:8 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary small">{{ related.get_document_type_display }}</span>
+                            {% if related.price %}
+                            <span class="fw-semibold text-success small">KSh {{ related.price }}</span>
+                            {% else %}
+                            <span class="fw-semibold text-success small">Free</span>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'template_manager:template-detail' related.pk %}" 
+                           class="btn btn-outline-primary btn-sm w-100 mt-2">View</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center">
+                    <p class="text-muted small">No related templates found</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
