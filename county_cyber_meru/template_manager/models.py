@@ -1,12 +1,12 @@
 from django.db import models
-
-# Create your models here.
 from django.utils.text import slugify
 from django.utils import timezone
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
+from .utils import generate_template_preview, delete_template_preview
 import os
+from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -23,16 +23,19 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
-        return reverse('category-detail', kwargs={'pk': self.pk})
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse('category-detail', kwargs={'slug': self.slug})
 
 def template_upload_path(instance, filename):
     """Generate upload path for template files"""
     ext = filename.split('.')[-1]
     filename = f"{instance.title.replace(' ', '_')}_{instance.id}.{ext}"
     return os.path.join('templates', instance.category.name, filename)
-
 
 class TemplateDocument(models.Model):
     DOCUMENT_TYPES = [
@@ -82,11 +85,12 @@ class TemplateDocument(models.Model):
     
     file = models.FileField(upload_to=template_upload_path)
     thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
+    preview_image = models.ImageField(upload_to='previews/', blank=True, null=True)
     
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='uploaded_templates')
     verified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, 
                                   related_name='verified_templates')
-
+    
     uploaded_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -126,8 +130,18 @@ class TemplateDocument(models.Model):
         # Auto-set verified fields if verified
         if self.is_verified and not self.verified_at:
             self.verified_at = timezone.now()
+        
+        # Call super save first to get an ID
+        is_new = self.pk is None
         super().save(*args, **kwargs)
-
+        
+        # Generate preview after saving for new templates or if file changed
+        if is_new or (self.file and not self.preview_image):
+            preview_path = generate_template_preview(self)
+            if preview_path:
+                self.preview_image = preview_path
+                # Save again to update preview_image field without triggering signal again
+                super().save(update_fields=['preview_image'])
 
 class TemplateDownload(models.Model):
     template = models.ForeignKey(TemplateDocument, on_delete=models.CASCADE, related_name='downloads')
@@ -141,7 +155,6 @@ class TemplateDownload(models.Model):
 
     def __str__(self):
         return f"{self.template.title} - {self.downloaded_by.username}"
-
 
 class TemplateRating(models.Model):
     template = models.ForeignKey(TemplateDocument, on_delete=models.CASCADE, related_name='ratings')
@@ -157,3 +170,37 @@ class TemplateRating(models.Model):
 
     def __str__(self):
         return f"{self.template.title} - {self.rating} stars"
+
+# SIGNALS - Defined outside the classes
+@receiver(post_delete, sender=TemplateDocument)
+def auto_delete_template_files(sender, instance, **kwargs):
+    """Delete file and preview when template is deleted"""
+    # Delete main file
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+    
+    # Delete thumbnail
+    if instance.thumbnail:
+        if os.path.isfile(instance.thumbnail.path):
+            os.remove(instance.thumbnail.path)
+    
+    # Delete preview image
+    if instance.preview_image:
+        if os.path.isfile(instance.preview_image.path):
+            os.remove(instance.preview_image.path)
+    
+    # Delete from utils
+    delete_template_preview(instance)
+
+@receiver(post_save, sender=TemplateDocument)
+def generate_template_preview_on_save(sender, instance, created, **kwargs):
+    """Generate preview when template is saved (alternative approach)"""
+    if created and instance.file and not instance.preview_image:
+        preview_path = generate_template_preview(instance)
+        if preview_path:
+            instance.preview_image = preview_path
+            instance.save(update_fields=['preview_image'])
+
+
+

@@ -15,6 +15,13 @@ class StaffProfile(AbstractUser):
     can_manage_users = models.BooleanField(default=False)
     department = models.CharField(max_length=100, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
+    profile_picture = models.ImageField(upload_to='staff_profiles/', blank=True, null=True)
+    position = models.CharField(max_length=100, blank=True) 
+
+
+    class Meta:
+        verbose_name = 'Staff Profile'
+        verbose_name_plural = 'Staff Profiles'
 
     def __str__(self):
         return f"{self.username} ({self.get_rank_display()})"

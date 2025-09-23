@@ -69,165 +69,137 @@
         </div>
 
 <!-- Sidebar -->
-<div class="col-lg-4">
-    <!-- Preview Card -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="detail-card p-4">
-            <h6 class="fw-semibold mb-3 text-primary">
-                <i class="fas fa-eye me-2"></i>Preview
-            </h6>
-            
-            {% if template.thumbnail %}
-            <div class="preview-container mb-3">
-                <img src="{{ template.thumbnail.url }}" alt="{{ template.title }}" 
-                     class="img-fluid rounded preview-image">
-                <div class="preview-overlay">
-                    <a href="{{ template.thumbnail.url }}" data-lightbox="preview" class="preview-btn">
-                        <i class="fas fa-expand"></i>
-                    </a>
-                </div>
-            </div>
-            {% else %}
-            <div class="text-center py-4 bg-light rounded-3 mb-3">
-                <div class="file-icon mb-2">
-                    <i class="fas fa-file-{{ template.document_type|lower }} fa-3x text-primary"></i>
-                </div>
-                <p class="text-muted small mb-0">Preview not available</p>
-            </div>
-            {% endif %}
-            
-            <div class="text-center">
+<!-- Preview Section -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h6 class="fw-semibold mb-3 text-primary">
+            <i class="fas fa-eye me-2"></i>Template Preview
+            <span class="badge bg-info ms-2">First Page</span>
+        </h6>
+        
+        {% if template.preview_image %}
+        <!-- Actual Template Content Preview -->
+        <div class="preview-container text-center">
+            <img src="{{ template.preview_image.url }}" 
+                 alt="Preview of {{ template.title }}"
+                 class="img-fluid rounded shadow preview-content"
+                 style="max-height: 500px; border: 2px solid #e9ecef;"
+                 onclick="openPreviewModal(this.src)">
+            <div class="mt-3">
                 <small class="text-muted">
                     <i class="fas fa-info-circle me-1"></i>
-                    Download for full editable file
+                    First page preview - Click to enlarge
                 </small>
             </div>
         </div>
-    </div>
-
-    <!-- Pricing & Action Card -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <h6 class="fw-semibold mb-3 text-primary">
-                <i class="fas fa-tag me-2"></i>Pricing & Download
-            </h6>
-            
-            <!-- Price Display -->
-            <div class="text-center mb-4">
-                {% if template.price %}
-                <div class="price-display">
-                    <span class="h3 fw-bold text-success">KSh {{ template.price }}</span>
-                    <div class="text-muted small">One-time purchase</div>
-                </div>
-                {% else %}
-                <div class="price-display">
-                    <span class="h3 fw-bold text-success">Free</span>
-                    <div class="text-muted small">No cost download</div>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Download Button -->
-            <div class="mb-4">
-                <a href="{% url 'template_manager:template-download' template.pk %}" 
-                   class="btn btn-primary w-100 btn-lg download-btn">
-                    <i class="fas fa-download me-2"></i>
-                    Download Now
-                </a>
-            </div>
-
-            <!-- Features -->
-            <div class="features-list">
-                <h6 class="fw-semibold mb-2 text-primary">
-                    <i class="fas fa-gift me-2"></i>What's Included
-                </h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="small">Full editable source file</span>
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="small">Print-ready quality</span>
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="small">Professional design</span>
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="small">Unlimited usage rights</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="small">Instant access</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- File Info -->
-            <div class="file-info mt-4 pt-3 border-top">
-                <h6 class="fw-semibold mb-2 text-primary">
-                    <i class="fas fa-info-circle me-2"></i>File Details
-                </h6>
-                <div class="d-flex justify-content-between small mb-1">
-                    <span class="text-muted">Format:</span>
-                    <span class="fw-semibold">{{ template.get_file_extension|upper }}</span>
-                </div>
-                <div class="d-flex justify-content-between small mb-1">
-                    <span class="text-muted">Size:</span>
-                    <span class="fw-semibold">{{ template.file.size|filesizeformat }}</span>
-                </div>
-                <div class="d-flex justify-content-between small">
-                    <span class="text-muted">Downloads:</span>
-                    <span class="fw-semibold">{{ template.download_count }}</span>
-                </div>
+        
+        {% elif template.thumbnail %}
+        <!-- Fallback to thumbnail -->
+        <div class="preview-container text-center">
+            <img src="{{ template.thumbnail.url }}" 
+                 alt="{{ template.title }}"
+                 class="img-fluid rounded shadow"
+                 style="max-height: 400px;">
+            <div class="mt-3">
+                <small class="text-muted">Template thumbnail</small>
             </div>
         </div>
-    </div>
-
-    <!-- Quick Stats Card -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-            <h6 class="fw-semibold mb-3 text-primary">
-                <i class="fas fa-chart-line me-2"></i>Template Stats
-            </h6>
-            
-            <div class="stats-grid">
-                <div class="stat-item text-center">
-                    <div class="stat-number text-primary fw-bold">{{ template.download_count }}</div>
-                    <div class="stat-label small text-muted">Downloads</div>
+        
+        {% else %}
+        <!-- No preview available -->
+        <div class="text-center py-4 bg-light rounded">
+            <i class="fas fa-file-{{ template.document_type|lower }} fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-2">Preview generating...</p>
+            <small class="text-muted">Refresh page in a moment</small>
+        </div>
+        {% endif %}
+        
+        <!-- Preview Quality Info -->
+        <div class="mt-3 pt-3 border-top">
+            <div class="row text-center small">
+                <div class="col-4">
+                    <i class="fas fa-file-alt text-primary"></i>
+                    <div class="text-muted">Page 1</div>
                 </div>
-                <div class="stat-item text-center">
-                    <div class="stat-number text-primary fw-bold">{{ template.ratings.count }}</div>
-                    <div class="stat-label small text-muted">Reviews</div>
+                <div class="col-4">
+                    <i class="fas fa-expand text-primary"></i>
+                    <div class="text-muted">Readable</div>
                 </div>
-                <div class="stat-item text-center">
-                    <div class="stat-number text-primary fw-bold">
-                        {% if template.get_average_rating %}{{ template.get_average_rating }}{% else %}0{% endif %}
-                    </div>
-                    <div class="stat-label small text-muted">Rating</div>
+                <div class="col-4">
+                    <i class="fas fa-download text-primary"></i>
+                    <div class="text-muted">Full file available</div>
                 </div>
-            </div>
-
-            <div class="mt-3 pt-3 border-top">
-                <div class="d-flex justify-content-between align-items-center small">
-                    <span class="text-muted">Uploaded:</span>
-                    <span class="fw-semibold">{{ template.uploaded_at|date:"M d, Y" }}</span>
-                </div>
-                {% if template.is_verified %}
-                <div class="d-flex justify-content-between align-items-center small mt-1">
-                    <span class="text-muted">Verified:</span>
-                    <span class="fw-semibold">{{ template.verified_at|date:"M d, Y" }}</span>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Preview: {{ template.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="modalPreviewImage" class="img-fluid" style="max-height: 70vh;">
+                <div class="mt-3">
+                    <a href="{{ template.file.url }}" download class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Download Full Template
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-
+<!-- Action Buttons -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                {% if template.is_verified or user.is_staff or user == template.uploaded_by %}
+                <a href="{% url 'template_manager:template-download' template.pk %}" 
+                   class="btn btn-primary w-100 btn-lg" id="download-btn">
+                    <i class="fas fa-download me-2"></i>
+                    Download Template
+                </a>
+                {% else %}
+                <button class="btn btn-secondary w-100 btn-lg" disabled>
+                    <i class="fas fa-clock me-2"></i>
+                    Pending Verification
+                </button>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {% if user.is_authenticated and user == template.uploaded_by or user.is_staff %}
+                <a href="{% url 'template_manager:template-edit' template.pk %}" 
+                   class="btn btn-outline-primary w-100 btn-lg">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Template
+                </a>
+                {% else %}
+                <a href="{% url 'template_manager:template-list' %}" 
+                   class="btn btn-outline-secondary w-100 btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Browse More
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Download Info -->
+        {% if not template.is_verified and not user.is_staff and user != template.uploaded_by %}
+        <div class="mt-3 text-center">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                This template is awaiting verification before it can be downloaded.
+            </small>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
     <!-- Related Templates -->
     <div class="row mt-4">
@@ -261,3 +233,4 @@
     </div>
 </div>
 {% endblock %}
+

@@ -1,0 +1,1 @@
+default_app_config = 'template_manager.apps.TemplateManagerConfig'

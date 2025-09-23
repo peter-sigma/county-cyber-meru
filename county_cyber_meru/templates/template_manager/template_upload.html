@@ -1,0 +1,221 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Template - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="text-gradient">Upload New Template</h1>
+                <p class="lead text-muted">Share your template with the County Cyber Meru team</p>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                            <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <h4 class="text-primary mb-4">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h4>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Template Title *</label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                    <div class="text-danger small">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Description *</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                    <div class="text-danger small">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Category *</label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                    <div class="text-danger small">{{ form.category.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Tags</label>
+                                    {{ form.tags }}
+                                    <div class="form-text">Separate tags with commas</div>
+                                </div>
+                            </div>
+
+                            <!-- Technical Details -->
+                            <div class="col-md-6">
+                                <h4 class="text-primary mb-4">
+                                    <i class="fas fa-cog me-2"></i>Technical Details
+                                </h4>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Document Type *</label>
+                                    {{ form.document_type }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Paper Size *</label>
+                                    {{ form.paper_size }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Template Category *</label>
+                                    {{ form.template_category }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Price (KSh)</label>
+                                    {{ form.price }}
+                                    <div class="form-text">Set to 0.00 for free templates</div>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    {{ form.is_featured }}
+                                    <label class="form-check-label fw-semibold">Feature this template</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Uploads -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4 class="text-primary mb-4">
+                                    <i class="fas fa-upload me-2"></i>File Uploads
+                                </h4>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold">Template File *</label>
+                                            {{ form.file }}
+                                            {% if form.file.errors %}
+                                            <div class="text-danger small">{{ form.file.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">
+                                                Supported formats: PDF, DOC, DOCX, PUB, XLS, PPT, JPG, PNG
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold">Thumbnail Image (Optional)</label>
+                                            {{ form.thumbnail }}
+                                            <div class="form-text">
+                                                Preview image for the template (optional)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'template_manager:template-list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                                    </a>
+                                    
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-upload me-2"></i>Upload Template
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Upload Guidelines -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i class="fas fa-lightbulb me-2"></i>Upload Guidelines
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Ensure the template is original or you have permission to share it
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Use descriptive titles and detailed descriptions
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Choose appropriate categories and tags for better searchability
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            All templates will be verified by admin before being published
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-2"></i>
+                            Maximum file size: 5MB
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.card {
+    border-radius: 15px;
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 0.75rem 2rem;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+</style>
+{% endblock %}

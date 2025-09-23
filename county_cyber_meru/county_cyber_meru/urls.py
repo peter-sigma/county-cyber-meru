@@ -10,6 +10,7 @@ urlpatterns = [
     path('templates/', include('template_manager.urls')),
     path('categories/', include('categories.urls')),
     path('', include('core.urls')),
+    path('staff/', include('staff.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

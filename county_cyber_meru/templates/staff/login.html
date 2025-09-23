@@ -1,0 +1,101 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Staff Login - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 80px; height: 80px;">
+                            <i class="fas fa-lock fa-2x"></i>
+                        </div>
+                        <h2 class="h4 text-gray-900 mb-2">Staff Login</h2>
+                        <p class="text-muted">Access the template management system</p>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-semibold">Username</label>
+                            <input type="text" name="username" class="form-control form-control-lg" 
+                                   id="username" placeholder="Enter your username" required
+                                   value="{{ request.POST.username }}">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold">Password</label>
+                            <input type="password" name="password" class="form-control form-control-lg" 
+                                   id="password" placeholder="Enter your password" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Dashboard
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Help Text -->
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Contact administrator if you need access
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="text-center mt-4">
+                <a href="{% url 'home' %}" class="text-decoration-none">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border-radius: 15px;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 0.75rem 2rem;
+}
+</style>
+{% endblock %}

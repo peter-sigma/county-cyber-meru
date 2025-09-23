@@ -1,7 +1,13 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.utils.text import slugify
 from .models import Category, TemplateDocument, TemplateDownload, TemplateRating
 from django.utils.html import format_html
+
+
+admin.site.register(User, UserAdmin)
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):

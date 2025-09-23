@@ -13,7 +13,7 @@
                 <p class="lead mb-4">Advanced template management system designed exclusively for County Cyber Meru staff efficiency and productivity.</p>
                 <div class="d-flex gap-3 flex-wrap">
                     <a href="#services" class="btn btn-light">Explore Features</a>
-                    <a href="#" class="btn btn-outline-light">Staff Login</a>
+                    <a href="{% url 'staff:login' %}" class="btn btn-outline-light">Staff Login</a>
                 </div>
             </div>
             <div class="col-lg-6 text-center">
@@ -127,7 +127,7 @@
     <div class="container text-center">
         <h4 class="fw-bold mb-3">Ready to Get Started?</h4>
         <p class="lead mb-4">Access the staff dashboard to begin managing templates efficiently</p>
-        <a href="#" class="btn btn-primary btn-lg">Staff Login Portal</a>
+        <a href="{% url 'staff:login' %}" class="btn btn-primary btn-lg">Staff Login Portal</a>
     </div>
 </section>
 {% endblock %}

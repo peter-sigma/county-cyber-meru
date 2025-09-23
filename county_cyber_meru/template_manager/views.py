@@ -9,6 +9,7 @@ from .models import TemplateDocument, Category
 from .forms import TemplateUploadForm
 from django.http import FileResponse, Http404
 
+
 def template_list(request):
     """List all verified templates"""
     templates = TemplateDocument.objects.filter(is_verified=True, is_active=True)
@@ -44,6 +45,11 @@ def template_detail(request, pk):
         is_verified=True,
         is_active=True
     ).exclude(pk=template.pk)[:3]
+
+
+    # Ensure category has a slug
+    if not template.category.slug:
+        template.category.save()  
 
     context = {
         'template': template,
