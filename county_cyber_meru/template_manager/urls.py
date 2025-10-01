@@ -14,7 +14,11 @@ urlpatterns = [
     
     # Category management
     path('categories/', views.category_list, name='category-list'),
-    path('category/<slug:slug>/', views.category_detail, name='category-detail'),
+    # path('category/<slug:slug>/', views.category_detail, name='category-detail'),
+    path('category/create/', views.category_create, name='category-create'),
+    path('category/<slug:slug>/edit/', views.category_edit, name='category-edit'),
+    path('category/<slug:slug>/delete/', views.category_delete, name='category-delete'),
+    path('category/<slug:slug>/toggle/', views.category_toggle, name='category-toggle'),
     
     # Search
     path('search/', views.template_search, name='template-search'),

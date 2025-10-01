@@ -12,6 +12,7 @@
                 <div>
                     <h1 class="h3 text-gray-900">Staff Dashboard</h1>
                     <p class="text-muted">Welcome back, {{ user.username }}!</p>
+                    <small class="text-muted">Last login: {{ user.last_login|date:"M d, Y H:i"|default:"First login" }}</small>
                 </div>
                 <div class="d-flex gap-3">
                     <a href="{% url 'template_manager:template-upload' %}" class="btn btn-primary">
@@ -35,11 +36,14 @@
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Total Templates
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_templates }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-file-alt fa-2x text-gray-300"></i>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">{{ user_uploads }} uploaded by you</small>
                     </div>
                 </div>
             </div>
@@ -53,11 +57,20 @@
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                 Your Uploads
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_uploads }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-upload fa-2x text-gray-300"></i>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            {% if user_uploads > 0 %}
+                                {{ user_uploads|floatformat:0 }}% of total
+                            {% else %}
+                                Start uploading!
+                            {% endif %}
+                        </small>
                     </div>
                 </div>
             </div>
@@ -71,11 +84,14 @@
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 Pending Verification
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_verification }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-clock fa-2x text-gray-300"></i>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Awaiting admin approval</small>
                     </div>
                 </div>
             </div>
@@ -89,68 +105,228 @@
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                 Total Downloads
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_downloads }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-download fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'template_manager:template-upload' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-upload fa-2x mb-2"></i><br>
-                                Upload Template
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'template_manager:template-list' %}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-search fa-2x mb-2"></i><br>
-                                Browse Templates
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'template_manager:category-list' %}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-folder fa-2x mb-2"></i><br>
-                                Manage Categories
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="/admin/" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-cog fa-2x mb-2"></i><br>
-                                Admin Panel
-                            </a>
-                        </div>
+                    <div class="mt-2">
+                        <small class="text-muted">{{ user_downloads }} by you</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Main Content Row -->
     <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+        <!-- Recent Activity -->
+        <div class="col-xl-8 col-lg-7">
+            <!-- Recent Templates -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Templates</h6>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted text-center py-4">No recent activity to display</p>
+                    {% if recent_templates %}
+                    <div class="list-group list-group-flush">
+                        {% for template in recent_templates %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ template.title }}</h6>
+                                <small class="text-muted">
+                                    {{ template.get_document_type_display }} • 
+                                    {{ template.uploaded_by.username }} • 
+                                    {{ template.uploaded_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                            <div>
+                                <span class="badge bg-{% if template.is_verified %}success{% else %}warning{% endif %} me-2">
+                                    {% if template.is_verified %}Verified{% else %}Pending{% endif %}
+                                </span>
+                                <a href="{% url 'template_manager:template-detail' template.pk %}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No templates available yet</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Your Recent Activity -->
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Your Recent Uploads</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if user_recent_uploads %}
+                            <div class="list-group list-group-flush">
+                                {% for template in user_recent_uploads %}
+                                <div class="list-group-item px-0">
+                                    <h6 class="mb-1">{{ template.title|truncatewords:4 }}</h6>
+                                    <small class="text-muted">
+                                        {{ template.uploaded_at|timesince }} ago • 
+                                        <span class="badge bg-{% if template.is_verified %}success{% else %}warning{% endif %}">
+                                            {{ template.download_count }} downloads
+                                        </span>
+                                    </small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-3">No uploads yet</p>
+                            <div class="text-center">
+                                <a href="{% url 'template_manager:template-upload' %}" class="btn btn-sm btn-primary">
+                                    Upload Your First Template
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Your Recent Downloads</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if user_recent_downloads %}
+                            <div class="list-group list-group-flush">
+                                {% for download in user_recent_downloads %}
+                                <div class="list-group-item px-0">
+                                    <h6 class="mb-1">{{ download.template.title|truncatewords:4 }}</h6>
+                                    <small class="text-muted">
+                                        Downloaded {{ download.downloaded_at|timesince }} ago
+                                    </small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-3">No downloads yet</p>
+                            <div class="text-center">
+                                <a href="{% url 'template_manager:template-list' %}" class="btn btn-sm btn-outline-primary">
+                                    Browse Templates
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-xl-4 col-lg-5">
+            <!-- Top Categories -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Categories</h6>
+                </div>
+                <div class="card-body">
+                    {% if top_categories %}
+                    <div class="list-group list-group-flush">
+                        {% for category in top_categories %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ category.name }}
+                            <span class="badge bg-primary rounded-pill">{{ category.template_count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No categories with templates</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'template_manager:template-upload' %}" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-upload me-2"></i>Upload New Template
+                        </a>
+                        <a href="{% url 'template_manager:template-list' %}" class="btn btn-outline-success text-start">
+                            <i class="fas fa-search me-2"></i>Browse All Templates
+                        </a>
+                        <a href="{% url 'template_manager:category-list' %}" class="btn btn-outline-info text-start">
+                            <i class="fas fa-folder me-2"></i>Manage Categories
+                        </a>
+                        <a href="/admin/" class="btn btn-outline-warning text-start">
+                            <i class="fas fa-cog me-2"></i>Admin Panel
+                        </a>
+                        {% if user.is_superuser %}
+                        <a href="/admin/template_manager/templatedocument/?is_verified__exact=0" class="btn btn-outline-danger text-start">
+                            <i class="fas fa-check-circle me-2"></i>Verify Templates
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">System Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Templates:</span>
+                        <span class="fw-bold">{{ total_templates }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Categories:</span>
+                        <span class="fw-bold">{{ top_categories|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Pending Verification:</span>
+                        <span class="fw-bold text-warning">{{ pending_verification }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Total Downloads:</span>
+                        <span class="fw-bold text-success">{{ total_downloads }}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border-radius: 12px;
+    border: none;
+}
+
+.card-header {
+    border-bottom: 1px solid #e3e6f0;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-info { border-left: 4px solid #36b9cc !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+</style>
 {% endblock %}

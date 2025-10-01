@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Delete Confirmation -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5 text-center">
+                    <div class="text-danger mb-4">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    </div>
+                    
+                    <h2 class="text-danger mb-3">Confirm Deletion</h2>
+                    
+                    <p class="lead mb-4">
+                        Are you sure you want to delete the category 
+                        <strong>"{{ category.name }}"</strong>?
+                    </p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        This action cannot be undone. All category information will be permanently deleted.
+                    </div>
+
+                    <!-- Category Info -->
+                    <div class="card border-0 bg-light mb-4">
+                        <div class="card-body">
+                            <h6>Category Details</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ category.name }}</p>
+                            {% if category.description %}
+                            <p class="mb-1"><strong>Description:</strong> {{ category.description }}</p>
+                            {% endif %}
+                            <p class="mb-0"><strong>Created:</strong> {{ category.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Delete Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'template_manager:category-list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Delete Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

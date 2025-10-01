@@ -10,7 +10,7 @@
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'template_manager:template-list' %}">Templates</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'template_manager:category-detail' template.category.slug %}">{{ template.category.name }}</a></li>
+            <li class="breadcrumb-item"><a href="#">{{ template.category.name }}</a></li>
             <li class="breadcrumb-item active">{{ template.title }}</li>
         </ol>
     </nav>

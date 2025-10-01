@@ -93,3 +93,35 @@ class TemplateUploadForm(forms.ModelForm):
         self.fields['thumbnail'].required = False
         self.fields['price'].required = False
         self.fields['tags'].required = False
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter category name'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter category description (optional)'
+            }),
+        }
+        help_texts = {
+            'name': 'A unique name for the category',
+            'description': 'Optional description to help identify the category',
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        # Check if name already exists (excluding current instance)
+        if self.instance.pk:
+            if Category.objects.filter(name=name).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError('A category with this name already exists.')
+        else:
+            if Category.objects.filter(name=name).exists():
+                raise forms.ValidationError('A category with this name already exists.')
+        return name
