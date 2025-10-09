@@ -1,0 +1,297 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Debug: {{ template.title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-gradient">
+                    <i class="fas fa-bug me-2"></i>Debug Information
+                </h1>
+                <a href="{% url 'template_manager:template-detail' template.pk %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Template
+                </a>
+            </div>
+
+            <!-- Template Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Template Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th>Title:</th>
+                                    <td>{{ template.title }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ID:</th>
+                                    <td>{{ template.pk }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Document Type:</th>
+                                    <td>{{ template.get_document_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>File Extension:</th>
+                                    <td><span class="badge bg-secondary">{{ file_extension|upper }}</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Verified:</th>
+                                    <td>
+                                        {% if template.is_verified %}
+                                        <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th>File Name:</th>
+                                    <td>{{ template.file.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>File Size:</th>
+                                    <td>{{ template.file.size|filesizeformat }}</td>
+                                </tr>
+                                <tr>
+                                    <th>File Path:</th>
+                                    <td><code>{{ template.file.path }}</code></td>
+                                </tr>
+                                <tr>
+                                    <th>File Exists:</th>
+                                    <td>
+                                        {% if template.file %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- URL Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-link me-2"></i>URL Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6>Direct File URL</h6>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="{{ template.file.url }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ template.file.url }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <a href="{{ template.file.url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                            <small class="text-muted">Direct URL to the file (may require authentication)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Public File URL</h6>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="{{ public_file_url }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ public_file_url }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <a href="{{ public_file_url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                            <small class="text-muted">
+                                Public URL (no authentication required)
+                                {% if public_url_accessible %}
+                                <span class="badge bg-success ms-2">Accessible</span>
+                                {% else %}
+                                <span class="badge bg-danger ms-2">Not Accessible</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Google Docs Viewer URL</h6>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" value="{{ google_docs_url }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ google_docs_url }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <a href="{{ google_docs_url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                            <small class="text-muted">URL that will be used by Google Docs Viewer</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Results -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header {% if public_url_accessible %}bg-success{% else %}bg-warning{% endif %} text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-vial me-2"></i>Connection Tests
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Public URL Accessibility</h6>
+                            {% if public_url_accessible %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>SUCCESS:</strong> Public URL is accessible from the internet.
+                                Google Docs should be able to access your file.
+                            </div>
+                            {% else %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>PROBLEM:</strong> Public URL is not accessible from the internet.
+                                Google Docs cannot access your file through this URL.
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>Google Docs Compatibility</h6>
+                            {% if file_extension in 'doc,docx,xls,xlsx,ppt,pptx,pdf' %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>SUPPORTED:</strong> {{ file_extension|upper }} files are supported by Google Docs Viewer.
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>LIMITED SUPPORT:</strong> {{ file_extension|upper }} files may have limited support in Google Docs Viewer.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-rocket me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{% url 'template_manager:template-view-embedded' template.pk %}" class="btn btn-primary w-100">
+                                <i class="fas fa-eye me-2"></i>Test Embedded View
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ google_docs_url }}" target="_blank" class="btn btn-info w-100">
+                                <i class="fab fa-google me-2"></i>Open in Google Docs
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'template_manager:template-download' template.pk %}" class="btn btn-success w-100">
+                                <i class="fas fa-download me-2"></i>Download File
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% if not public_url_accessible %}
+                    <div class="alert alert-warning mt-3">
+                        <h6>
+                            <i class="fas fa-exclamation-triangle me-2"></i>Fix Required
+                        </h6>
+                        <p class="mb-2">The public file URL is not accessible. This is likely because:</p>
+                        <ul class="mb-2">
+                            <li>Your Django server is not publicly accessible (localhost/development)</li>
+                            <li>Media files are not properly served in production</li>
+                            <li>There are authentication requirements on the file</li>
+                        </ul>
+                        <p class="mb-0">
+                            <strong>Solution:</strong> In production, ensure your media files are served from a public URL 
+                            (e.g., AWS S3, Google Cloud Storage, or a properly configured web server).
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show temporary success message
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '<i class="fas fa-check"></i>';
+        event.target.classList.remove('btn-outline-secondary');
+        event.target.classList.add('btn-success');
+        
+        setTimeout(function() {
+            event.target.innerHTML = originalText;
+            event.target.classList.remove('btn-success');
+            event.target.classList.add('btn-outline-secondary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+// Add some interactive debugging
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Debug Information:');
+    console.log('Template ID:', {{ template.pk }});
+    console.log('File Extension:', '{{ file_extension }}');
+    console.log('Public URL Accessible:', {{ public_url_accessible|yesno:"true,false" }});
+    console.log('Google Docs URL:', '{{ google_docs_url }}');
+});
+</script>
+
+<style>
+.card {
+    border-radius: 10px;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.input-group .btn {
+    border-radius: 0 6px 6px 0;
+}
+
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}

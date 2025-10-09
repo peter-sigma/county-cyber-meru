@@ -1,0 +1,179 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'template_manager:category-list' %}">Categories</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="text-gradient">{{ category.name }} Templates</h1>
+                    <p class="text-muted">{{ category.description }}</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary fs-6">{{ total_templates }} templates</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ total_templates }}</h4>
+                    <p class="mb-0">Total Templates</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ verified_count }}</h4>
+                    <p class="mb-0">Verified</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h4>{{ pending_count }}</h4>
+                    <p class="mb-0">Pending Review</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Filter Templates</h5>
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <select name="document_type" class="form-control">
+                        <option value="">All Document Types</option>
+                        {% for doc_type in document_types %}
+                            <option value="{{ doc_type }}" {% if current_filters.document_type == doc_type %}selected{% endif %}>
+                                {{ doc_type }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select name="paper_size" class="form-control">
+                        <option value="">All Paper Sizes</option>
+                        {% for size in paper_sizes %}
+                            <option value="{{ size }}" {% if current_filters.paper_size == size %}selected{% endif %}>
+                                {{ size }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    {% if current_filters.document_type or current_filters.paper_size %}
+                    <a href="{% url 'template_manager:category-detail' category.slug %}" class="btn btn-outline-secondary w-100 mt-2">
+                        Clear Filters
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Templates Grid -->
+    <div class="row g-4">
+        {% for template in templates %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-file-{{ template.document_type|lower }} fa-3x text-primary"></i>
+                    </div>
+                    
+                    <h5 class="fw-bold">{{ template.title }}</h5>
+                    <p class="text-muted small">{{ template.description|truncatewords:15 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">{{ template.get_document_type_display }}</span>
+                        <span class="badge bg-secondary">{{ template.get_paper_size_display }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-download me-1"></i>{{ template.download_count }}
+                        </small>
+                        {% if template.price %}
+                        <span class="fw-bold text-success">KSh {{ template.price }}</span>
+                        {% else %}
+                        <span class="fw-bold text-success">Free</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if not template.is_verified %}
+                    <div class="alert alert-warning small mb-3">
+                        <i class="fas fa-clock me-1"></i>Pending verification
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'template_manager:template-detail' template.pk %}" class="btn btn-outline-primary btn-sm">
+                            View Details
+                        </a>
+                        {% if template.is_verified or user.is_staff or user == template.uploaded_by %}
+                        <a href="{% url 'template_manager:template-download' template.pk %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4>No Templates Found</h4>
+                    <p class="text-muted">
+                        {% if current_filters.document_type or current_filters.paper_size %}
+                        No templates match your filters. Try adjusting your criteria.
+                        {% else %}
+                        No templates available in this category yet.
+                        {% endif %}
+                    </p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'template_manager:template-upload' %}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload Template
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Back to Categories -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <a href="{% url 'template_manager:category-list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Categories
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

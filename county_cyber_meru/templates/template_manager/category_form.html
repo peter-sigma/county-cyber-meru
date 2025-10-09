@@ -48,6 +48,15 @@
                             <div class="form-text">{{ form.description.help_text }}</div>
                         </div>
 
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">template link</label>
+                            {{ form.template_link }}
+                            {% if form.template_link.errors %}
+                            <div class="text-danger small mt-1">{{ form.template_link.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.template_link.help_text }}</div>
+                        </div>
+
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between align-items-center mt-5">
                             <a href="{% url 'template_manager:category-list' %}" class="btn btn-outline-secondary">

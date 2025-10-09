@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="text-gradient">Submit a Task</h1>
+                <p class="lead text-muted">Tell us what you need help with and we'll get back to you soon!</p>
+            </div>
+
+            <!-- Task Submission Form -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Your Name *</label>
+                                    {{ form.customer_name }}
+                                    {% if form.customer_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.customer_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Your Email *</label>
+                                    {{ form.customer_email }}
+                                    {% if form.customer_email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.customer_email.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Phone Number (Optional)</label>
+                            {{ form.customer_phone }}
+                            {% if form.customer_phone.errors %}
+                            <div class="text-danger small mt-1">{{ form.customer_phone.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Task Category *</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Task Title *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Task Description *</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Please provide as much detail as possible about what you need.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Attachment (Optional)</label>
+                            {{ form.attachment }}
+                            {% if form.attachment.errors %}
+                            <div class="text-danger small mt-1">{{ form.attachment.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Upload any relevant files (max 10MB)</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Service Information -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i class="fas fa-info-circle me-2"></i>What happens next?
+                    </h5>
+                    <div class="row text-center mt-3">
+                        <div class="col-md-4">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-envelope fa-2x"></i>
+                            </div>
+                            <h6>Confirmation</h6>
+                            <p class="small text-muted">You'll receive a confirmation email with your task details</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-tasks fa-2x"></i>
+                            </div>
+                            <h6>Review</h6>
+                            <p class="small text-muted">Our team will review your task and contact you within 24 hours</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <h6>Completion</h6>
+                            <p class="small text-muted">We'll complete your task and notify you when it's ready</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

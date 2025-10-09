@@ -1,0 +1,392 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="text-gradient mb-1">
+                <i class="fab fa-google me-2"></i>Viewing: {{ template.title }}
+            </h4>
+            <p class="text-muted small mb-0">
+                <i class="fas fa-file-{{ template.document_type|lower }} me-1"></i>
+                {{ template.get_document_type_display }} • {{ template.get_paper_size_display }}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'template_manager:template-download' template.pk %}" class="btn btn-primary btn-sm me-2">
+                <i class="fas fa-download me-1"></i>Download
+            </a>
+            <a href="{% url 'template_manager:template-detail' template.pk %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Back to Details
+            </a>
+            <a href="{% url 'template_manager:template-view-debug' template.pk %}" class="btn btn-info btn-sm ms-2" target="_blank">
+                <i class="fas fa-bug me-1"></i>Debug
+            </a>
+        </div>
+    </div>
+
+    <!-- Google Docs Viewer -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-file-{{ template.document_type|lower }} me-2"></i>
+                Document Viewer
+            </h5>
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm text-light me-2 d-none" role="status" id="loadingSpinner">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <small>Powered by Google Docs Viewer</small>
+            </div>
+        </div>
+        <div class="card-body p-0 position-relative">
+            <!-- Loading State -->
+            <div id="loadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-light d-flex flex-column justify-content-center align-items-center" style="z-index: 10;">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading document...</span>
+                </div>
+                <h5>Loading Document Viewer</h5>
+                <p class="text-muted text-center">Initializing Google Docs Viewer...</p>
+                <div class="progress mt-3" style="width: 200px;">
+                    <div id="loadingProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div id="errorOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-light d-flex flex-column justify-content-center align-items-center d-none" style="z-index: 20;">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h5>Unable to Load Document</h5>
+                <p class="text-muted text-center mb-3" id="errorMessage">
+                    Google Docs Viewer could not load this document.
+                </p>
+                <div class="d-flex gap-2 flex-wrap justify-content-center">
+                    <a href="{% url 'template_manager:template-download' template.pk %}" class="btn btn-primary">
+                        <i class="fas fa-download me-1"></i>Download File
+                    </a>
+                    <button onclick="tryFallback()" class="btn btn-outline-warning" id="fallbackButton">
+                        <i class="fas fa-redo me-1"></i>Try Alternative Method
+                    </button>
+                    <button onclick="retryLoading()" class="btn btn-outline-secondary">
+                        <i class="fas fa-sync me-1"></i>Retry
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Success State -->
+            <div id="successOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-success bg-opacity-10 d-flex flex-column justify-content-center align-items-center d-none" style="z-index: 5;">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5 class="text-success">Document Loaded Successfully</h5>
+                <p class="text-muted">You can now view the document below.</p>
+                <button onclick="hideSuccess()" class="btn btn-success btn-sm">
+                    <i class="fas fa-times me-1"></i>Close This Message
+                </button>
+            </div>
+            
+            <!-- Google Docs Iframe -->
+            <iframe src="" 
+                    style="width: 100%; height: 75vh; border: none;" 
+                    frameborder="0"
+                    id="googleDocsFrame"
+                    onload="onFrameLoad()"
+                    onerror="onFrameError()">
+            </iframe>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="alert alert-info">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>Document Viewer Information
+                </h6>
+                <p class="mb-2">
+                    <strong>Current Method:</strong> <span id="currentMethod">Loading...</span>
+                </p>
+                <p class="mb-2">
+                    <strong>File Type:</strong> {{ template.get_file_extension|upper }} ({{ template.get_document_type_display }})
+                </p>
+                <p class="mb-0">
+                    <strong>Note:</strong> Some complex formatting may not display perfectly in the online viewer.
+                    <a href="{% url 'template_manager:template-download' template.pk %}" class="alert-link">
+                        Download the original file
+                    </a> for full functionality.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-cogs me-2"></i>Viewer Status
+                    </h6>
+                    <div class="small" id="statusInfo">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Connection:</span>
+                            <span id="connectionStatus" class="badge bg-warning">Testing...</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Method:</span>
+                            <span id="methodStatus" class="badge bg-secondary">Initializing</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Fallbacks:</span>
+                            <span id="fallbackStatus" class="badge bg-info">Available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentMethod = 'direct';
+let fallbackUsed = false;
+let retryCount = 0;
+const maxRetries = 2;
+
+// URLs for different methods
+const urls = {
+    direct: "{{ google_docs_url|safe }}",
+    fallback: "{{ google_docs_fallback_url|safe }}"
+};
+
+function initializeViewer() {
+    console.log('Initializing Google Docs viewer...');
+    updateStatus('connection', 'warning', 'Connecting...');
+    updateStatus('method', 'secondary', 'Direct URL');
+    
+    // Start with direct method
+    loadFrame(urls.direct);
+    startLoadingAnimation();
+}
+
+function loadFrame(url) {
+    console.log('Loading frame with URL:', url);
+    const iframe = document.getElementById('googleDocsFrame');
+    iframe.src = url;
+}
+
+function onFrameLoad() {
+    console.log('Frame loaded successfully');
+    hideLoading();
+    showSuccess();
+    updateStatus('connection', 'success', 'Connected');
+    updateStatus('method', 'success', currentMethod.toUpperCase());
+    
+    // Check if content is actually loaded (Google Docs sometimes loads empty)
+    setTimeout(() => {
+        checkContentLoaded();
+    }, 3000);
+}
+
+function onFrameError() {
+    console.log('Frame loading error');
+    retryCount++;
+    
+    if (retryCount <= maxRetries && !fallbackUsed) {
+        console.log(`Retry ${retryCount}/${maxRetries}`);
+        updateStatus('connection', 'warning', `Retrying (${retryCount}/${maxRetries})...`);
+        setTimeout(() => loadFrame(urls.direct), 1000 * retryCount);
+    } else if (!fallbackUsed) {
+        // Try fallback method
+        tryFallback();
+    } else {
+        showError('All loading methods failed. Please download the file.');
+    }
+}
+
+function tryFallback() {
+    console.log('Trying fallback method...');
+    fallbackUsed = true;
+    currentMethod = 'fallback';
+    retryCount = 0;
+    
+    showLoading('Trying alternative connection method...');
+    updateStatus('method', 'warning', 'Fallback URL');
+    updateStatus('fallback', 'warning', 'Active');
+    
+    loadFrame(urls.fallback);
+}
+
+function checkContentLoaded() {
+    const iframe = document.getElementById('googleDocsFrame');
+    try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const bodyContent = iframeDoc.body.innerText;
+        
+        if (!bodyContent || bodyContent.includes('No preview available') || bodyContent.length < 10) {
+            console.log('Content check: No meaningful content detected');
+            showError('Document loaded but content not displayed. This file type may not be fully supported.');
+        } else {
+            console.log('Content check: Content detected successfully');
+        }
+    } catch (e) {
+        console.log('Content check: Cannot access iframe content (cross-origin)');
+        // This is normal for cross-origin iframes
+    }
+}
+
+function showLoading(message = 'Loading document...') {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    document.getElementById('errorOverlay').classList.add('d-none');
+    document.getElementById('successOverlay').classList.add('d-none');
+    document.querySelector('#loadingOverlay p').textContent = message;
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('loadingSpinner').classList.add('d-none');
+}
+
+function showSuccess() {
+    document.getElementById('successOverlay').classList.remove('d-none');
+    document.getElementById('currentMethod').textContent = currentMethod.toUpperCase() + ' Method';
+}
+
+function hideSuccess() {
+    document.getElementById('successOverlay').classList.add('d-none');
+}
+
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('errorOverlay').classList.remove('d-none');
+    document.getElementById('loadingOverlay').style.display = 'none';
+    updateStatus('connection', 'danger', 'Failed');
+}
+
+function retryLoading() {
+    console.log('Manual retry requested');
+    showLoading('Retrying document loading...');
+    document.getElementById('errorOverlay').classList.add('d-none');
+    initializeViewer();
+}
+
+function updateStatus(element, type, text) {
+    const elementMap = {
+        'connection': 'connectionStatus',
+        'method': 'methodStatus', 
+        'fallback': 'fallbackStatus'
+    };
+    
+    const elementId = elementMap[element];
+    if (elementId) {
+        const element = document.getElementById(elementId);
+        element.className = `badge bg-${type}`;
+        element.textContent = text;
+    }
+}
+
+function startLoadingAnimation() {
+    let progress = 0;
+    const progressBar = document.getElementById('loadingProgress');
+    const interval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress >= 90) {
+            progress = 90; // Cap at 90% until loaded
+            clearInterval(interval);
+        }
+        progressBar.style.width = progress + '%';
+    }, 500);
+    
+    // Clear when loading completes
+    window.loadingInterval = interval;
+}
+
+function stopLoadingAnimation() {
+    if (window.loadingInterval) {
+        clearInterval(window.loadingInterval);
+    }
+    document.getElementById('loadingProgress').style.width = '100%';
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initializeViewer, 500);
+    
+    // Auto-hide success message after 5 seconds
+    setTimeout(hideSuccess, 5000);
+});
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && document.getElementById('errorOverlay').classList.contains('d-none')) {
+        // Page became visible, check if we need to reload
+        const iframe = document.getElementById('googleDocsFrame');
+        if (!iframe.src) {
+            initializeViewer();
+        }
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        window.location.href = "{% url 'template_manager:template-detail' template.pk %}";
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+        event.preventDefault();
+        window.location.href = "{% url 'template_manager:template-download' template.pk %}";
+    }
+});
+
+// Handle window resize
+function handleResize() {
+    const iframe = document.getElementById('googleDocsFrame');
+    const header = document.querySelector('.card-header');
+    if (header && iframe) {
+        const headerHeight = header.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        iframe.style.height = (viewportHeight - headerHeight - 150) + 'px';
+    }
+}
+
+window.addEventListener('resize', handleResize);
+setTimeout(handleResize, 100);
+</script>
+
+<style>
+.loading-overlay {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 6px;
+}
+
+#iframe-container {
+    position: relative;
+    min-height: 500px;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

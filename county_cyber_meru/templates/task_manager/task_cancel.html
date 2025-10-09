@@ -1,0 +1,72 @@
+{% extends 'task_manager/base_task.html' %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Cancel Confirmation -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5 text-center">
+                    <div class="text-danger mb-4">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    </div>
+                    
+                    <h2 class="text-danger mb-3">Cancel Task</h2>
+                    
+                    <p class="lead mb-4">
+                        Are you sure you want to cancel the task 
+                        <strong>"{{ task.title }}"</strong>?
+                    </p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        This action cannot be undone. The customer will be notified that their task has been cancelled.
+                    </div>
+
+                    <!-- Task Info -->
+                    <div class="card border-0 bg-light mb-4">
+                        <div class="card-body">
+                            <h6>Task Details</h6>
+                            <p class="mb-1"><strong>Customer:</strong> {{ task.customer_name }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ task.customer_email }}</p>
+                            <p class="mb-1"><strong>Created:</strong> {{ task.created_at|date:"M d, Y" }}</p>
+                            <p class="mb-0"><strong>Status:</strong> 
+                                <span class="badge task-status-{{ task.status }}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Cancel Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-start w-100">
+                                <i class="fas fa-comment me-2"></i>Reason for Cancellation *
+                            </label>
+                            <textarea name="cancellation_reason" class="form-control" rows="4" 
+                                      placeholder="Please provide a reason for cancelling this task..."
+                                      required></textarea>
+                            <div class="form-text">
+                                This reason will be recorded and may be shared with the customer.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'task_manager:task-detail' task.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Go Back
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-2"></i>Cancel Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

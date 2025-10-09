@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="card border-0 shadow-lg text-center">
+                <div class="card-body py-5">
+                    <div class="text-success mb-4">
+                        <i class="fas fa-check-circle fa-5x"></i>
+                    </div>
+                    
+                    <h1 class="text-gradient mb-3">Task Submitted Successfully!</h1>
+                    <p class="lead text-muted mb-4">
+                        Thank you for submitting your task. We've received your request and will contact you soon.
+                    </p>
+                    
+                    <div class="alert alert-info mx-auto" style="max-width: 500px;">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-envelope me-2"></i>What to Expect Next
+                        </h6>
+                        <ul class="list-unstyled mb-0 small">
+                            <li><i class="fas fa-clock text-primary me-2"></i>We'll contact you within 24 hours</li>
+                            <li><i class="fas fa-phone text-primary me-2"></i>We may call or email for more details</li>
+                            <li><i class="fas fa-dollar-sign text-primary me-2"></i>We'll provide a price quote</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-5">
+                        <a href="{% url 'task_manager:task-submission' %}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-plus me-2"></i>Submit Another Task
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-home me-2"></i>Return Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body text-center">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-headset me-2"></i>Need Immediate Assistance?
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                <i class="fas fa-phone text-primary me-3"></i>
+                                <div class="text-start">
+                                    <strong>Phone</strong><br>
+                                    <span class="text-muted">+254 7XX XXX XXX</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                <i class="fas fa-envelope text-primary me-3"></i>
+                                <div class="text-start">
+                                    <strong>Email</strong><br>
+                                    <span class="text-muted">tasks@countycybermeru.com</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -98,7 +98,7 @@ class TemplateUploadForm(forms.ModelForm):
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'template_link']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -109,10 +109,16 @@ class CategoryForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Enter category description (optional)'
             }),
+            'template_link': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter service link (optional)'
+            }),
         }
         help_texts = {
             'name': 'A unique name for the category',
             'description': 'Optional description to help identify the category',
+            'template_link': 'Optional link',
         }
 
     def clean_name(self):

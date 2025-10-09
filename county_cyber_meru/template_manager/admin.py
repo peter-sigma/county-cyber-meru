@@ -11,11 +11,19 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'description', 'is_active', 'created_at']
+    list_display = ['name', 'slug', 'description', 'is_active', 'has_template_link', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
     list_editable = ['is_active']
     prepopulated_fields = {'slug': ('name',)}  # Now this will work
+
+    def task_count(self, obj):
+        return obj.tasks.count()
+    task_count.short_description = 'Tasks'
+
+    
+    def has_template_link(self, obj):
+        return bool(obj.template_link)
 
     def save_model(self, request, obj, form, change):
         if not obj.slug:

@@ -10,7 +10,7 @@
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'template_manager:template-list' %}">Templates</a></li>
-            <li class="breadcrumb-item"><a href="#">{{ template.category.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'template_manager:category-detail' template.category.slug %}">{{ template.category.name }}</a></li>
             <li class="breadcrumb-item active">{{ template.title }}</li>
         </ol>
     </nav>
@@ -52,6 +52,75 @@
                     </div>
                 </div>
             </div>
+            <!-- Add this to your template_detail.html in the messages section -->
+            {% if messages %}
+            <div class="row mb-4">
+                <div class="col-12">
+                     {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                        <div class="d-flex align-items-center">
+                            {% if message.tags == 'success' %}
+                                 <i class="fas fa-check-circle fa-2x me-3"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                            {% elif message.tags == 'info' %}
+                                <i class="fas fa-info-circle fa-2x me-3"></i>
+                            {% else %}
+                                <i class="fas fa-bell fa-2x me-3"></i>
+                             {% endif %}
+                            <div>
+                                <h6 class="alert-heading mb-1">
+                                {% if message.tags == 'success' %}Success!
+                                {% elif message.tags == 'error' %}Error
+                                {% elif message.tags == 'info' %}Information
+                                 {% else %}Notice{% endif %}
+                                </h6>
+                                <p class="mb-0">{{ message }}</p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                 </div>
+                </div>
+            {% endif %}
+            
+            <!-- Template Details -->
+            <div class="card border rounded p-3 mb-3 bg-white">
+                <h6 class="fw-bold text-primary mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Template Details
+                </h6>
+                <div class="row small">
+                    <div class="col-md-6 mb-2">
+                        <strong>Document Type:</strong> {{ template.get_document_type_display }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Paper Size:</strong> {{ template.get_paper_size_display }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Category:</strong> 
+                        <a href="{% url 'template_manager:category-detail' template.category.slug %}" class="text-decoration-none">
+                            {{ template.category.name }}
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Price:</strong> 
+                        {% if template.price %}
+                            <span class="text-success">KSh {{ template.price }}</span>
+                        {% else %}
+                            <span class="text-success">Free</span>
+                        {% endif %}
+                    </div>
+                    {% if template.tags %}
+                    <div class="col-12 mb-2">
+                        <strong>Tags:</strong> 
+                        {% for tag in template.tags_list %}
+                            <span class="badge bg-light text-dark border">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Uploader Info -->
             <div class="card border rounded p-3 mb-3 bg-white small">
@@ -68,169 +137,500 @@
             </div>
         </div>
 
-<!-- Sidebar -->
-<!-- Preview Section -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-4">
-        <h6 class="fw-semibold mb-3 text-primary">
-            <i class="fas fa-eye me-2"></i>Template Preview
-            <span class="badge bg-info ms-2">First Page</span>
-        </h6>
-        
-        {% if template.preview_image %}
-        <!-- Actual Template Content Preview -->
-        <div class="preview-container text-center">
-            <img src="{{ template.preview_image.url }}" 
-                 alt="Preview of {{ template.title }}"
-                 class="img-fluid rounded shadow preview-content"
-                 style="max-height: 500px; border: 2px solid #e9ecef;"
-                 onclick="openPreviewModal(this.src)">
-            <div class="mt-3">
-                <small class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    First page preview - Click to enlarge
-                </small>
-            </div>
-        </div>
-        
-        {% elif template.thumbnail %}
-        <!-- Fallback to thumbnail -->
-        <div class="preview-container text-center">
-            <img src="{{ template.thumbnail.url }}" 
-                 alt="{{ template.title }}"
-                 class="img-fluid rounded shadow"
-                 style="max-height: 400px;">
-            <div class="mt-3">
-                <small class="text-muted">Template thumbnail</small>
-            </div>
-        </div>
-        
-        {% else %}
-        <!-- No preview available -->
-        <div class="text-center py-4 bg-light rounded">
-            <i class="fas fa-file-{{ template.document_type|lower }} fa-3x text-muted mb-3"></i>
-            <p class="text-muted mb-2">Preview generating...</p>
-            <small class="text-muted">Refresh page in a moment</small>
-        </div>
-        {% endif %}
-        
-        <!-- Preview Quality Info -->
-        <div class="mt-3 pt-3 border-top">
-            <div class="row text-center small">
-                <div class="col-4">
-                    <i class="fas fa-file-alt text-primary"></i>
-                    <div class="text-muted">Page 1</div>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Preview Section -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="fas fa-eye me-2"></i>Template Preview
+                    </h6>
+                    
+                    {% if template.preview_image %}
+                    <!-- Actual Template Content Preview -->
+                    <div class="preview-container text-center">
+                        <img src="{{ template.preview_image.url }}" 
+                             alt="Preview of {{ template.title }}"
+                             class="img-fluid rounded shadow preview-content"
+                             style="max-height: 500px; border: 2px solid #e9ecef; cursor: pointer;"
+                             onclick="openPreviewModal('{{ template.preview_image.url }}')" >
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                First page preview - Click to enlarge
+                            </small>
+                        </div>
+                    </div>
+                    
+                    {% elif template.thumbnail %}
+                    <!-- Fallback to thumbnail -->
+                    <div class="preview-container text-center">
+                        <img src="{{ template.thumbnail.url }}" 
+                             alt="{{ template.title }}"
+                             class="img-fluid rounded shadow preview-content"
+                             style="max-height: 400px; cursor: pointer;"
+                             onclick="openPreviewModal('{{ template.thumbnail.url }}')">
+                        <div class="mt-3">
+                            <small class="text-muted">Template thumbnail - Click to enlarge</small>
+                        </div>
+                    </div>
+                    
+                    {% elif template.file %}
+                    <!-- Show file with view and download options -->
+                    <div class="text-center py-3 bg-light rounded">
+                        <div class="mb-3">
+                            <i class="fas fa-file-{{ template.document_type|lower }} fa-4x text-primary"></i>
+                        </div>
+                        <h6 class="fw-bold">{{ template.title }}</h6>
+                        <p class="text-muted small mb-3">{{ template.get_document_type_display }} • {{ template.get_paper_size_display }}</p>
+                        
+                        <!-- View in Browser Button -->
+                         <h1>View in broser is bellow me</h1>
+                        <div class="d-grid gap-2 mb-3">
+                            <button class="btn btn-success btn-lg" onclick="openTemplateInBrowser('{{ template.file.url }}', '{{ template.get_file_extension }}')">
+                                <i class="fas fa-eye me-2"></i>View in Browser
+                            </button>
+                        </div>
+                        
+                        <!-- File download card -->
+                        <div class="card border-0 bg-white">
+                            <div class="card-body py-3">
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <div class="text-start">
+                                        <div class="fw-bold">{{ template.get_file_extension|upper }} File</div>
+                                        <div class="text-muted">{{ template.file.size|filesizeformat }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <a href="{% url 'template_manager:template-download' template.pk %}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-download me-1"></i>Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% else %}
+                    <!-- No file available -->
+                    <div class="text-center py-4 bg-light rounded">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <p class="text-muted mb-2">Template file not available</p>
+                        <small class="text-muted">Please contact administrator</small>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Preview Quality Info -->
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="row text-center small">
+                            <div class="col-4">
+                                <i class="fas fa-file-{{ template.document_type|lower }} text-primary"></i>
+                                <div class="text-muted">{{ template.get_document_type_display }}</div>
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-expand text-primary"></i>
+                                <div class="text-muted">Viewable</div>
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-download text-primary"></i>
+                                <div class="text-muted">Downloadable</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-4">
-                    <i class="fas fa-expand text-primary"></i>
-                    <div class="text-muted">Readable</div>
-                </div>
-                <div class="col-4">
-                    <i class="fas fa-download text-primary"></i>
-                    <div class="text-muted">Full file available</div>
-                </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Preview Modal -->
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Preview: {{ template.title }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img src="" id="modalPreviewImage" class="img-fluid" style="max-height: 70vh;">
-                <div class="mt-3">
-                    <a href="{{ template.file.url }}" download class="btn btn-primary">
-                        <i class="fas fa-download me-2"></i>Download Full Template
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Action Buttons -->
+<!-- In the action buttons section -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-6">
-                {% if template.is_verified or user.is_staff or user == template.uploaded_by %}
-                <a href="{% url 'template_manager:template-download' template.pk %}" 
-                   class="btn btn-primary w-100 btn-lg" id="download-btn">
-                    <i class="fas fa-download me-2"></i>
-                    Download Template
+        {% if template.is_verified or user.is_staff or user == template.uploaded_by %}
+        
+            {% if template.can_view_in_browser %}
+            <!-- View in Browser Button -->
+                <div class="d-grid mb-3">
+                    <a href="{% url 'template_manager:template-view-embedded' template.pk %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-eye me-2"></i>
+                        {% if template.uses_google_docs_viewer %}
+                            View with Google Docs
+                        {% else %}
+                             View in Browser
+                        {% endif %}
+                    </a>
+                </div>
+            {% endif %}
+            <div class="d-grid mb-3">
+                <a href="{% url 'template_manager:template-system-view' template.pk %}" class="btn btn-warning btn-lg">
+                    <i class="fas fa-desktop me-2"></i>Open with System App
                 </a>
-                {% else %}
-                <button class="btn btn-secondary w-100 btn-lg" disabled>
+                <small class="text-muted text-center mt-1">
+                    Opens in default application (Word, Excel, Acrobat, etc.)
+                 </small>
+            </div>
+
+            <!-- Download Button -->
+            <div class="d-grid mb-3">
+                <a href="{% url 'template_manager:template-download' template.pk %}" 
+                   class="btn btn-primary btn-lg">
+                    <i class="fas fa-download me-2"></i>Download Template
+                </a>
+                <small class="text-muted text-center mt-1">
+                    Save to your device for editing
+                </small>
+            </div>
+            
+        {% else %}
+            <!-- Pending Verification -->
+            <div class="d-grid mb-3">
+                <button class="btn btn-secondary btn-lg" disabled>
                     <i class="fas fa-clock me-2"></i>
                     Pending Verification
                 </button>
-                {% endif %}
+                <small class="text-muted text-center mt-1">
+                    Awaiting administrator approval
+                </small>
             </div>
-            <div class="col-md-6">
-                {% if user.is_authenticated and user == template.uploaded_by or user.is_staff %}
-                <a href="{% url 'template_manager:template-edit' template.pk %}" 
-                   class="btn btn-outline-primary w-100 btn-lg">
-                    <i class="fas fa-edit me-2"></i>
-                    Edit Template
-                </a>
-                {% else %}
-                <a href="{% url 'template_manager:template-list' %}" 
-                   class="btn btn-outline-secondary w-100 btn-lg">
-                    <i class="fas fa-arrow-left me-2"></i>
-                    Browse More
-                </a>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Download Info -->
-        {% if not template.is_verified and not user.is_staff and user != template.uploaded_by %}
-        <div class="mt-3 text-center">
-            <small class="text-muted">
-                <i class="fas fa-info-circle me-1"></i>
-                This template is awaiting verification before it can be downloaded.
-            </small>
-        </div>
         {% endif %}
+        
+        <!-- File Compatibility Info -->
+        <div class="mt-3 p-3 bg-light rounded small">
+            <h6 class="fw-bold mb-2">
+                <i class="fas fa-laptop me-2"></i>Viewing Options
+            </h6>
+            <div class="row text-center">
+                <div class="col-4">
+                    <i class="fab fa-google text-primary mb-1"></i>
+                    <div class="text-muted">Google Docs</div>
+                    <small>
+                        {% if template.uses_google_docs_viewer %}
+                        <span class="text-success">✓ Available</span>
+                        {% else %}
+                        <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="col-4">
+                    <i class="fas fa-desktop text-primary mb-1"></i>
+                    <div class="text-muted">Browser</div>
+                    <small>
+                        {% if template.can_view_in_browser and not template.uses_google_docs_viewer %}
+                        <span class="text-success">✓ Direct</span>
+                        {% elif template.can_view_in_browser %}
+                        <span class="text-info">Via Google</span>
+                        {% else %}
+                        <span class="text-warning">Download</span>
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="col-4">
+                    <i class="fas fa-download text-primary mb-1"></i>
+                    <div class="text-muted">Download</div>
+                    <small class="text-success">✓ Always</small>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-    <!-- Related Templates -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <h5 class="fw-bold text-gradient mb-2">Related Templates</h5>
-            <div class="row g-2">
-                {% for related in related_templates %}
-                <div class="col-md-4">
-                    <div class="border rounded p-2 h-100 bg-white small">
-                        <h6 class="fw-semibold small">{{ related.title|truncatewords:4 }}</h6>
-                        <p class="text-muted small mb-1">{{ related.description|truncatewords:8 }}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-primary small">{{ related.get_document_type_display }}</span>
-                            {% if related.price %}
-                            <span class="fw-semibold text-success small">KSh {{ related.price }}</span>
-                            {% else %}
-                            <span class="fw-semibold text-success small">Free</span>
-                            {% endif %}
+<!-- Add this after the action buttons -->
+<div class="card border-0 shadow-sm mt-3">
+    <div class="card-body">
+        <h6 class="fw-bold text-primary mb-2">
+            <i class="fab fa-google me-2"></i>About Google Docs Viewer
+        </h6>
+        <div class="small">
+            <p class="mb-2">
+                <strong>Office Files (DOC, XLS, PPT):</strong> Open in Google Docs Viewer for 
+                easy viewing without downloading.
+            </p>
+            <p class="mb-2">
+                <strong>Features:</strong> View documents, spreadsheets, and presentations 
+                directly in your browser.
+            </p>
+            <p class="mb-0">
+                <strong>Note:</strong> Some complex formatting may not display perfectly. 
+                Download for full editing capabilities.
+            </p>
+        </div>
+    </div>
+</div>
+            <!-- Quick Info -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-semibold text-primary mb-3">
+                        <i class="fas fa-bolt me-2"></i>Quick Info
+                    </h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>File Format:</span>
+                            <strong>{{ template.get_file_extension|upper }}</strong>
                         </div>
-                        <a href="{% url 'template_manager:template-detail' related.pk %}" 
-                           class="btn btn-outline-primary btn-sm w-100 mt-2">View</a>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>File Size:</span>
+                            <strong>{{ template.file.size|filesizeformat }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Last Updated:</span>
+                            <strong>{{ template.updated_at|date:"M d, Y" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Compatibility:</span>
+                            <strong>
+                                {% if template.get_file_extension in 'pdf' %}
+                                All Browsers
+                                {% elif template.get_file_extension in 'doc,docx' %}
+                                MS Word
+                                {% elif template.get_file_extension in 'xls,xlsx' %}
+                                MS Excel
+                                {% else %}
+                                Various Apps
+                                {% endif %}
+                            </strong>
+                        </div>
+                        {% if template.is_featured %}
+                        <div class="text-center mt-3">
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-star me-1"></i>Featured Template
+                            </span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% empty %}
-                <div class="col-12 text-center">
-                    <p class="text-muted small">No related templates found</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Templates -->
+    {% if related_templates %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h5 class="fw-bold text-gradient mb-4">
+                <i class="fas fa-layer-group me-2"></i>Related Templates
+            </h5>
+            <div class="row g-3">
+                {% for related in related_templates %}
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-file-{{ related.document_type|lower }} fa-2x text-primary"></i>
+                            </div>
+                            <h6 class="fw-semibold">{{ related.title }}</h6>
+                            <p class="text-muted small mb-2">{{ related.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-primary small">{{ related.get_document_type_display }}</span>
+                                {% if related.price %}
+                                <span class="fw-semibold text-success small">KSh {{ related.price }}</span>
+                                {% else %}
+                                <span class="fw-semibold text-success small">Free</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'template_manager:template-detail' related.pk %}" 
+                               class="btn btn-outline-primary btn-sm w-100">View Details</a>
+                        </div>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
-{% endblock %}
 
+<!-- Preview Modal for Images -->
+{% if template.preview_image or template.thumbnail %}
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Preview: {{ template.title }}
+                </h5>
+                <div>
+                    <button type="button" class="btn btn-primary btn-sm me-2" onclick="openTemplateInBrowser('{{ template.file.url }}', '{{ template.get_file_extension }}')">
+                        <i class="fas fa-external-link-alt me-1"></i>View Full Template
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body text-center bg-light">
+                <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+                    <img src="" id="modalPreviewImage" class="img-fluid rounded shadow" style="max-height: 70vh; object-fit: contain;">
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% if template.preview_image %}First page preview{% else %}Template thumbnail{% endif %} - Click "View Full Template" to see complete file
+                </small>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+<!-- Template Viewer Modal -->
+<div class="modal fade" id="templateViewerModal" tabindex="-1" aria-labelledby="templateViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="templateViewerModalLabel">
+                    <i class="fas fa-file-{{ template.document_type|lower }} me-2"></i>
+                    {{ template.title }} - Browser View
+                </h5>
+                <div>
+                    <a href="{% url 'template_manager:template-download' template.pk %}" class="btn btn-primary btn-sm me-2">
+                        <i class="fas fa-download me-1"></i>Download
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="templateViewer" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Viewing template in browser. Some features may require download for full functionality.
+                </small>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close Viewer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Template Viewing -->
+<script>
+function openPreviewModal(imageSrc) {
+    console.log('Opening preview modal with image:', imageSrc);
+    const modalImage = document.getElementById('modalPreviewImage');
+    if (modalImage) {
+        modalImage.src = imageSrc;
+        const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+        previewModal.show();
+    }
+}
+
+function openTemplateInBrowser(fileUrl, fileExtension) {
+    console.log('Opening template in browser:', fileUrl, fileExtension);
+    
+    // Check if file type can be displayed in browser
+    const browserViewable = ['pdf', 'txt', 'html', 'htm'].includes(fileExtension.toLowerCase());
+    
+    if (browserViewable) {
+        // Open in modal for browser-viewable files
+        const viewerIframe = document.getElementById('templateViewer');
+        if (viewerIframe) {
+            viewerIframe.src = fileUrl;
+            const viewerModal = new bootstrap.Modal(document.getElementById('templateViewerModal'));
+            viewerModal.show();
+        }
+    } else {
+        // For non-browser files, open in new tab (may trigger download in some browsers)
+        window.open(fileUrl, '_blank');
+        
+        // Show info message
+        showToast('This file type may open in a new application or download directly. For best experience, download the file.', 'info');
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'info' ? 'info' : 'warning'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-${type === 'info' ? 'info-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    // Add to toast container
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.appendChild(toast);
+    
+    // Initialize and show toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast after hide
+    toast.addEventListener('hidden.bs.toast', function () {
+        toast.remove();
+    });
+}
+
+// Add click event to all preview images
+document.addEventListener('DOMContentLoaded', function() {
+    const previewImages = document.querySelectorAll('.preview-content');
+    previewImages.forEach(img => {
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', function() {
+            openPreviewModal(this.src);
+        });
+    });
+    
+    // Keyboard support for modals
+    document.addEventListener('keydown', function(event) {
+        const previewModal = document.getElementById('previewModal');
+        const viewerModal = document.getElementById('templateViewerModal');
+        
+        if (event.key === 'Escape') {
+            if (previewModal && previewModal.classList.contains('show')) {
+                const bsModal = bootstrap.Modal.getInstance(previewModal);
+                if (bsModal) bsModal.hide();
+            }
+            if (viewerModal && viewerModal.classList.contains('show')) {
+                const bsModal = bootstrap.Modal.getInstance(viewerModal);
+                if (bsModal) bsModal.hide();
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.modal-fullscreen .modal-body {
+    min-height: 80vh;
+}
+
+#templateViewer {
+    min-height: 70vh;
+}
+
+.toast {
+    z-index: 9999;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1e9e8a);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

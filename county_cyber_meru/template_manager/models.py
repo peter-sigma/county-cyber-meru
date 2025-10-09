@@ -15,6 +15,10 @@ class Category(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    template_link = models.URLField(
+        blank=True, 
+        help_text="Optional: Link to template (Canvas, Google Docs, etc.)"
+    )
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -117,14 +121,80 @@ class TemplateDocument(models.Model):
         return f"{self.title} ({self.get_document_type_display()})"
 
     def get_absolute_url(self):
-        return reverse('template-detail', kwargs={'pk': self.pk})
+        return reverse('template_manager:template-detail', kwargs={'pk': self.pk})
 
     def get_file_extension(self):
-        return os.path.splitext(self.file.name)[1].lower()
+        """Get file extension without the dot"""
+        if self.file:
+            return os.path.splitext(self.file.name)[1].lower().replace('.', '')
+        return ''
+
+    def get_file_type_display(self):
+        """Get user-friendly file type"""
+        ext = self.get_file_extension()
+        file_types = {
+            'pdf': 'PDF Document',
+            'doc': 'Word Document',
+            'docx': 'Word Document',
+            'xls': 'Excel Spreadsheet',
+            'xlsx': 'Excel Spreadsheet',
+            'ppt': 'PowerPoint',
+            'pptx': 'PowerPoint',
+            'pub': 'Publisher Document',
+            'txt': 'Text File',
+            'html': 'Web Page',
+            'htm': 'Web Page',
+        }
+        return file_types.get(ext, f'{ext.upper()} File')
 
     def increment_download_count(self):
         self.download_count += 1
         self.save()
+
+    @property
+    def can_view_in_browser(self):
+        """Check if file can be viewed in browser"""
+        browser_compatible = [
+            'pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg',  # Images
+            'txt', 'html', 'htm', 'csv',                       # Text
+            'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',       # Office (via Google Docs)
+            'odt', 'ods', 'odp', 'rtf',                       # OpenDocument
+            # Note: 'pub' is NOT included here since it can't be viewed in browser
+        ]
+        return self.get_file_extension() in browser_compatible
+
+    @property
+    def uses_google_docs_viewer(self):
+        """Check if this file uses Google Docs Viewer"""
+        google_docs_extensions = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf']
+        return self.get_file_extension() in google_docs_extensions
+
+    def get_browser_view_info(self):
+        """Get information about browser viewing capabilities"""
+        ext = self.get_file_extension()
+        
+        view_info = {
+            'pdf': 'Opens directly in browser',
+            'jpg': 'Displays as image',
+            'jpeg': 'Displays as image', 
+            'png': 'Displays as image',
+            'gif': 'Displays as image',
+            'doc': 'Opens in Google Docs Viewer',
+            'docx': 'Opens in Google Docs Viewer',
+            'xls': 'Opens in Google Docs Viewer', 
+            'xlsx': 'Opens in Google Docs Viewer',
+            'ppt': 'Opens in Google Docs Viewer',
+            'pptx': 'Opens in Google Docs Viewer',
+            'pub': 'Download required - Opens in Microsoft Publisher',
+            'txt': 'Opens as text in browser',
+            'html': 'Opens as web page',
+            'odt': 'Opens in Google Docs Viewer',
+            'ods': 'Opens in Google Docs Viewer',
+            'odp': 'Opens in Google Docs Viewer',
+            'rtf': 'Opens in Google Docs Viewer',
+        }
+        
+        return view_info.get(ext, 'Download required for viewing')
 
     def save(self, *args, **kwargs):
         # Auto-set verified fields if verified
@@ -142,6 +212,18 @@ class TemplateDocument(models.Model):
                 self.preview_image = preview_path
                 # Save again to update preview_image field without triggering signal again
                 super().save(update_fields=['preview_image'])
+
+    @property
+    def tags_list(self):
+        """Return tags as a list"""
+        if self.tags:
+            return [tag.strip() for tag in self.tags.split(',')]
+        return []
+
+    def get_average_rating(self):
+        """Calculate average rating from reviews"""
+        from django.db.models import Avg
+        return self.ratings.aggregate(Avg('rating'))['rating__avg']
 
 class TemplateDownload(models.Model):
     template = models.ForeignKey(TemplateDocument, on_delete=models.CASCADE, related_name='downloads')

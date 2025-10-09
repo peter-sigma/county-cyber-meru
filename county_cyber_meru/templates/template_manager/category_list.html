@@ -55,7 +55,8 @@
                     {% endif %}
                     
                     <div class="mt-3">
-                        <a href="#" class="btn btn-outline-primary btn-sm">
+                        <!-- FIXED: Added proper URL for viewing templates -->
+                        <a href="{% url 'template_manager:category-detail' category.slug %}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>View Templates
                         </a>
                         

@@ -1,0 +1,222 @@
+{% extends 'task_manager/base_task.html' %}
+{% load humanize %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-gradient">Task Dashboard</h1>
+            <p class="text-muted">Overview of task management system</p>
+        </div>
+        <div>
+            <a href="{% url 'task_manager:task-list' %}" class="btn btn-primary">
+                <i class="fas fa-list me-2"></i>View All Tasks
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ tasks_by_status.total|default:0 }} Did this display?</h3>
+                <small>Total Tasks</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card bg-warning text-dark shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ tasks_by_status.pending|default:0 }}</h3>
+                <small>Pending</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ tasks_by_status.in_progress|default:0 }}</h3>
+                <p>Hello</p>
+                <small>In Progress</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ tasks_by_status.completed|default:0 }}</h3>
+                <small>Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card bg-danger text-white shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ tasks_by_status.cancelled|default:0 }}</h3>
+                <small>Cancelled</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card bg-secondary text-white shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ overdue_count|default:0 }}</h3>
+                <small>Overdue</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="row">
+        <!-- My Tasks -->
+        {% if my_tasks %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>My Assigned Tasks
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for task in my_tasks %}
+                    <div class="border-start border-3 border-primary ps-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'task_manager:task-detail' task.pk %}" class="text-decoration-none">
+                                        {{ task.title }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">#{{ task.id }} • {{ task.category.name }}</small>
+                            </div>
+                            <span class="badge task-priority-{{ task.priority }}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </div>
+                        {% if task.due_date %}
+                        <small class="text-muted">
+                            Due: {{ task.due_date|date:"M d, Y" }}
+                            {% if task.is_overdue %}
+                            <span class="badge bg-danger ms-1">Overdue</span>
+                            {% endif %}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Overdue Tasks -->
+        {% if overdue_tasks %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Overdue Tasks
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for task in overdue_tasks %}
+                    <div class="border-start border-3 border-danger ps-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'task_manager:task-detail' task.pk %}" class="text-decoration-none">
+                                        {{ task.title }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">#{{ task.id }} • Assigned to: 
+                                    {% if task.assigned_to %}
+                                    {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                                    {% else %}
+                                    Unassigned
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        <small class="text-danger">
+                            Due: {{ task.due_date|date:"M d, Y" }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-clock me-2"></i>Recent Tasks
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in recent_tasks %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'task_manager:task-detail' task.pk %}" class="fw-bold">
+                                    {{ task.title|truncatewords:4 }}
+                                </a>
+                                <br>
+                                <small class="text-muted">#{{ task.id }}</small>
+                            </td>
+                            <td>{{ task.customer_name }}</td>
+                            <td>
+                                <span class="badge task-status-{{ task.status }}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge task-priority-{{ task.priority }}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>{{ task.created_at|timesince }} ago</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                No tasks found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.task-status-pending { background-color: #6c757d; }
+.task-status-in_progress { background-color: #0d6efd; }
+.task-status-completed { background-color: #198754; }
+.task-status-cancelled { background-color: #dc3545; }
+
+.task-priority-low { background-color: #6c757d; }
+.task-priority-medium { background-color: #ffc107; color: black; }
+.task-priority-high { background-color: #fd7e14; }
+.task-priority-urgent { background-color: #dc3545; }
+</style>
+{% endblock %}

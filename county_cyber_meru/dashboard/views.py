@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from template_manager.models import Category, TemplateDocument, TemplateDownload, TemplateRating
 from django.contrib import messages
 from django.db.models import Count, Sum
+from task_manager.models import Task
 
 @login_required
 def dashboard(request):
@@ -17,7 +18,15 @@ def dashboard(request):
     user_uploads = TemplateDocument.objects.filter(uploaded_by=request.user, is_active=True).count()
     pending_verification = TemplateDocument.objects.filter(is_verified=False, is_active=True).count()
     total_downloads = TemplateDownload.objects.count()
-    
+    task_stats = {
+        'total_tasks': Task.objects.count(),
+        'pending_tasks': Task.objects.filter(status='pending').count(),
+        'in_progress_tasks': Task.objects.filter(status='in_progress').count(),
+        'my_tasks': Task.objects.filter(assigned_to=request.user).exclude(
+            status__in=['completed', 'cancelled']
+        ).count(),
+        'recent_tasks': Task.objects.all().order_by('-created_at')[:5],
+    }
     # User-specific downloads
     user_downloads = TemplateDownload.objects.filter(downloaded_by=request.user).count()
     
@@ -50,5 +59,6 @@ def dashboard(request):
         'top_categories': top_categories,
         'user_recent_uploads': user_recent_uploads,
         'user_recent_downloads': user_recent_downloads,
+        'task_stats': task_stats,
     }
     return render(request, 'staff/dashboard.html', context)

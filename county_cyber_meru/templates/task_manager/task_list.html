@@ -1,0 +1,362 @@
+{% extends 'task_manager/base_task.html' %}
+{% load humanize %}
+
+{% block title %}Task List - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-gradient">Task Manager</h1>
+            <p class="text-muted">Manage and track all customer tasks</p>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" class="form-select">
+                        <option value="">All Priorities</option>
+                        {% for value, label in priority_choices %}
+                        <option value="{{ value }}" {% if request.GET.priority == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+
+                 <div class="col-md-2">
+                    <label class="form-label">Assigned To</label>
+                    <select name="assigned" class="form-select">
+                        <option value="">All Staff</option>
+                        <option value="unassigned" {% if request.GET.assigned == 'unassigned' %}selected{% endif %}>
+                            Unassigned
+                        </option>
+                        <option value="me" {% if request.GET.assigned == 'me' %}selected{% endif %}>
+                            Assigned to Me
+                        </option>
+                        {% for staff in staff_members %}
+                        <option value="{{ staff.id }}" {% if request.GET.assigned == staff.id|stringformat:"i" %}selected{% endif %}>
+                        {{ staff.get_full_name|default:staff.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Date</label>
+                    <select name="date" class="form-select">
+                     <option value="">All Dates</option>
+                        <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Today</option>
+                        <option value="yesterday" {% if request.GET.date == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                        <option value="this_week" {% if request.GET.date == 'this_week' %}selected{% endif %}>This Week</option>
+                        <option value="last_week" {% if request.GET.date == 'last_week' %}selected{% endif %}>Last Week</option>
+                        <option value="this_month" {% if request.GET.date == 'this_month' %}selected{% endif %}>This Month</option>
+                        <option value="last_month" {% if request.GET.date == 'last_month' %}selected{% endif %}>Last Month</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" class="form-control" placeholder="Search tasks..." 
+                           value="{{ request.GET.q }}">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                    <a href="{% url 'task_manager:task-list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Tasks</h6>
+                            <h3 class="mb-0">{{ total_tasks }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tasks fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Pending</h6>
+                            <h3 class="mb-0">{{ pending_count }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Completed</h6>
+                            <h3 class="mb-0">{{ completed_count }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Overdue</h6>
+                            <h3 class="mb-0">{{ overdue_count }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Tasks</h5>
+            <div class="text-muted small">
+                Showing {{ tasks.count }} of {{ total_tasks }} tasks
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Task</th>
+                            <th>Customer</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Assigned To</th>
+                            <th>Due Date</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-tasks text-muted me-2"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <a href="{% url 'task_manager:task-detail' task.pk %}" class="fw-bold text-decoration-none">
+                                            {{ task.title|truncatewords:5 }}
+                                        </a>
+                                        <div class="text-muted small">
+                                            #{{ task.id }} • {{ task.created_at|timesince }} ago
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ task.customer_name }}</div>
+                                <div class="text-muted small">{{ task.customer_email }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ task.category.name }}</span>
+                            </td>
+                            <td>
+                                <span class="badge task-status-{{ task.status }}">
+                                    {{ task.get_status_display }}
+                                </span>
+                                {% if task.is_overdue %}
+                                <span class="badge bg-danger ms-1">Overdue</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge task-priority-{{ task.priority }}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if task.assigned_to %}
+                                <div>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</div>
+                                {% if task.assigned_to.rank %}
+                                <small class="text-muted">{{ task.assigned_to.get_rank_display }}</small>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if task.due_date %}
+                                <div>{{ task.due_date|date:"M d, Y" }}</div>
+                                <div class="text-muted small">{{ task.due_date|date:"H:i" }}</div>
+                                {% else %}
+                                <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if task.price %}
+                                <span class="fw-bold text-success">KSh {{ task.price|intcomma }}</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'task_manager:task-detail' task.pk %}" 
+                                       class="btn btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if task.status != 'completed' and task.status != 'cancelled' %}
+                                    {% if not task.assigned_to %}
+                                    <a href="{% url 'task_manager:task-assign-to-me' task.pk %}" 
+                                       class="btn btn-outline-success" title="Assign to Me">
+                                        <i class="fas fa-user-plus"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'task_manager:task-mark-completed' task.pk %}" 
+                                       class="btn btn-outline-primary" title="Mark Complete">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No tasks found</h5>
+                                <p class="text-muted">No tasks match your current filters.</p>
+                                <a href="{% url 'task_manager:task-create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create Your First Task
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="card-footer bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Previous
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Next
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Last
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.task-status-pending { background-color: #6c757d; color: white; }
+.task-status-in_progress { background-color: #0d6efd; color: white; }
+.task-status-completed { background-color: #198754; color: white; }
+.task-status-cancelled { background-color: #dc3545; color: white; }
+
+.task-priority-low { background-color: #6c757d; color: white; }
+.task-priority-medium { background-color: #ffc107; color: black; }
+.task-priority-high { background-color: #fd7e14; color: white; }
+.task-priority-urgent { background-color: #dc3545; color: white; }
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.075);
+}
+</style>
+{% endblock %}

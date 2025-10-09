@@ -11,6 +11,8 @@ urlpatterns = [
     path('categories/', include('categories.urls')),
     path('', include('core.urls')),
     path('staff/', include('staff.urls')),
+    path('task-manager/', include('task_manager.urls', namespace='task_manager')),
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

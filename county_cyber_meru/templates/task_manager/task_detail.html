@@ -1,0 +1,434 @@
+{% extends 'task_manager/base_task.html' %}
+
+{% block title %}{{ title }} - County Cyber Meru{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-gradient">{{ task.title }}</h1>
+            <p class="text-muted">Task #{{ task.id }} • Created {{ task.created_at|timesince }} ago</p>
+        </div>
+        <div>
+            <a href="{% url 'task_manager:task-list' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+            {% if task.status != 'completed' and task.status != 'cancelled' %}
+                {% if not task.assigned_to %}
+                <a href="{% url 'task_manager:task-assign-to-me' task.pk %}" class="btn btn-success me-2">
+                    <i class="fas fa-user-plus me-2"></i>Assign to Me
+                </a>
+                {% endif %}
+                {% if task.status != 'completed' %}
+                <a href="{% url 'task_manager:task-mark-completed' task.pk %}" class="btn btn-primary me-2">
+                    <i class="fas fa-check me-2"></i>Mark Complete
+                </a>
+                {% endif %}
+                {% if task.status != 'cancelled' %}
+                <a href="{% url 'task_manager:task-cancel' task.pk %}" class="btn btn-danger">
+                    <i class="fas fa-times me-2"></i>Cancel Task
+                </a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Task Details -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Task Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge task-status-{{ task.status }}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Priority:</th>
+                                    <td>
+                                        <span class="badge task-priority-{{ task.priority }}">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Category:</th>
+                                    <td>{{ task.category.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Assigned To:</th>
+                                    <td>
+                                        {% if task.assigned_to %}
+                                        {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                                        {% else %}
+                                        <span class="text-muted">Unassigned</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th>Price:</th>
+                                    <td>
+                                        {% if task.price %}
+                                        <span class="fw-bold text-success">KSh {{ task.price }}</span>
+                                        {% else %}
+                                        <span class="text-muted">Not priced yet</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Due Date:</th>
+                                    <td>
+                                        {% if task.due_date %}
+                                        {{ task.due_date|date:"M d, Y H:i" }}
+                                        {% if task.is_overdue %}
+                                        <span class="badge bg-danger ms-1">Overdue</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>{{ task.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Last Updated:</th>
+                                    <td>{{ task.updated_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6>Description</h6>
+                        <div class="border rounded p-3 bg-light">
+                            {{ task.description|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Template Link Section -->
+                    {% if task.category.template_link %}
+                    <div class="mt-4">
+                        <h6>Template Link</h6>
+                        <div class="p-3 bg-light rounded">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-link text-primary"></i>
+                                <small class="text-muted">Click to select, then copy (Ctrl+C)</small>
+                            </div>
+                            <input type="text" 
+                                   value="{{ task.category.template_link }}" 
+                                   class="form-control" 
+                                   id="template-link-input"
+                                   readonly
+                                   onclick="this.select()">
+                            <div class="mt-2 d-flex gap-2">
+                                <a href="{{ task.category.template_link }}" target="_blank" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>Open Link
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyTemplateLink()">
+                                    <i class="fas fa-copy me-1"></i>Copy to Clipboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if task.attachment %}
+                    <div class="mt-4">
+                        <h6>Attachment</h6>
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            <i class="fas fa-paperclip fa-2x text-muted me-3"></i>
+                            <div>
+                                <a href="{{ task.attachment.url }}" target="_blank" class="fw-bold">
+                                    {{ task.attachment.name|slice:"15:" }}
+                                </a>
+                                <div class="text-muted small">
+                                    {{ task.attachment.size|filesizeformat }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Customer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Name:</strong><br>
+                            {{ task.customer_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Email:</strong><br>
+                            <a href="mailto:{{ task.customer_email }}">{{ task.customer_email }}</a>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Phone:</strong><br>
+                            {% if task.customer_phone %}
+                            <a href="tel:{{ task.customer_phone }}">{{ task.customer_phone }}</a>
+                            {% else %}
+                            <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Updates -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Task Updates & Comments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add Update Form -->
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ update_form.message }}
+                        </div>
+                        <button type="submit" name="add_update" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Update
+                        </button>
+                    </form>
+
+                    <!-- Updates List -->
+                    <div class="updates-list">
+                        {% for update in task.updates.all %}
+                        <div class="border-start border-3 border-primary ps-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <strong>{{ update.user.get_full_name|default:update.user.username }}</strong>
+                                <small class="text-muted">{{ update.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-0">{{ update.message|linebreaks }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <p>No updates yet. Add the first update!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Management Tools -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if not task.assigned_to %}
+                        <a href="{% url 'task_manager:task-assign-to-me' task.pk %}" class="btn btn-success">
+                            <i class="fas fa-user-plus me-2"></i>Assign to Me
+                        </a>
+                        {% endif %}
+                        {% if task.status != 'completed' %}
+                        <a href="{% url 'task_manager:task-mark-completed' task.pk %}" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Mark Complete
+                        </a>
+                        {% endif %}
+                        {% if task.status != 'cancelled' %}
+                        <a href="{% url 'task_manager:task-cancel' task.pk %}" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>Cancel Task
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Management Form -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Update Task
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            {{ staff_form.status }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            {{ staff_form.priority }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assigned To</label>
+                            {{ staff_form.assigned_to }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Price (KSh)</label>
+                            {{ staff_form.price }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Due Date</label>
+                            {{ staff_form.due_date }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Staff Notes</label>
+                            {{ staff_form.staff_notes }}
+                        </div>
+                        <button type="submit" name="update_status" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-2"></i>Update Task
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Attachments -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paperclip me-2"></i>Add Attachment
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">File</label>
+                            {{ attachment_form.file }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            {{ attachment_form.description }}
+                        </div>
+                        <button type="submit" name="add_attachment" class="btn btn-info w-100">
+                            <i class="fas fa-upload me-2"></i>Upload Attachment
+                        </button>
+                    </form>
+
+                    {% if task.attachments.exists %}
+                    <hr>
+                    <h6>Existing Attachments</h6>
+                    {% for attachment in task.attachments.all %}
+                    <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-file text-muted me-2"></i>
+                            <div>
+                                <a href="{{ attachment.file.url }}" target="_blank" class="small">
+                                    {{ attachment.file.name|slice:"15:" }}
+                                </a>
+                                {% if attachment.description %}
+                                <div class="text-muted smaller">{{ attachment.description }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ attachment.uploaded_at|date:"M d" }}</small>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyTemplateLink() {
+    const input = document.getElementById("template-link-input");
+    
+    // Select the text
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        // Try to copy using execCommand (works in most browsers)
+        const successful = document.execCommand("copy");
+        
+        if (successful) {
+            // Show success feedback
+            showCopySuccess();
+        } else {
+            // If execCommand fails, try modern API
+            tryModernClipboard(input.value);
+        }
+    } catch (err) {
+        // If execCommand throws error, try modern API
+        tryModernClipboard(input.value);
+    }
+}
+
+function tryModernClipboard(text) {
+    // Try modern clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showCopySuccess();
+        }).catch(function(err) {
+            showCopyManual(text);
+        });
+    } else {
+        showCopyManual(text);
+    }
+}
+
+function showCopySuccess() {
+    // Show temporary success message
+    const originalButton = event.target;
+    const originalText = originalButton.innerHTML;
+    
+    originalButton.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+    originalButton.classList.remove('btn-outline-secondary');
+    originalButton.classList.add('btn-success');
+    
+    setTimeout(function() {
+        originalButton.innerHTML = originalText;
+        originalButton.classList.remove('btn-success');
+        originalButton.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+
+function showCopyManual(text) {
+    // Fallback: show alert with the text
+    alert("Please copy this link manually:\n\n" + text);
+}
+</script>
+
+<style>
+.task-status-pending { background-color: #6c757d; color: white; }
+.task-status-in_progress { background-color: #0d6efd; color: white; }
+.task-status-completed { background-color: #198754; color: white; }
+.task-status-cancelled { background-color: #dc3545; color: white; }
+
+.task-priority-low { background-color: #6c757d; color: white; }
+.task-priority-medium { background-color: #ffc107; color: black; }
+.task-priority-high { background-color: #fd7e14; color: white; }
+.task-priority-urgent { background-color: #dc3545; color: white; }
+</style>
+{% endblock %}

@@ -17,7 +17,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
                 {% if logo_available %}
@@ -39,6 +39,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'task_manager:services' %}">Services</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'contact' %}">Contact</a>
@@ -64,6 +67,29 @@
 
     <!-- Main Content -->
     <main>
+        <!-- Add to staff navigation -->
+{% if user.is_staff %}
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="fas fa-tasks me-1"></i>Tasks
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}">
+                <i class="fas fa-list me-2"></i>All Tasks
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'task_manager:task-submission' %}" target="_blank">
+                <i class="fas fa-plus me-2"></i>Submit Task
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}?assigned=me">
+                <i class="fas fa-user me-2"></i>My Tasks
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}?assigned=unassigned">
+                <i class="fas fa-question me-2"></i>Unassigned
+            </a></li>
+        </ul>
+    </li>
+    {% endif %}
         {% block content %}
         {% endblock %}
     </main>
