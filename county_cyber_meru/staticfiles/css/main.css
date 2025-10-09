@@ -364,3 +364,343 @@ html {
     font-size: 0.9rem;
     border-radius: 8px;
 }
+
+/* Template Detail Page Styles */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: var(--secondary);
+}
+
+/* Badge improvements */
+.badge {
+    font-size: 0.8em;
+    padding: 0.5em 0.75em;
+}
+
+/* Display utilities */
+.display-6 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+/* File type icons */
+.fa-file-pdf { color: #f40f02; }
+.fa-file-word { color: #2b579a; }
+.fa-file-excel { color: #217346; }
+.fa-file-powerpoint { color: #d24726; }
+.fa-file-image { color: #ff6b6b; }
+.fa-file-alt { color: #74b9ff; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-6 {
+        font-size: 2rem;
+    }
+    
+    .service-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Template Detail Page Tweaks */
+.template-detail .service-card {
+    padding: 1.2rem 1.5rem;
+    height: auto;
+}
+
+.template-detail .service-card h1,
+.template-detail .service-card h2,
+.template-detail .service-card h3 {
+    margin-bottom: 0.8rem;
+}
+
+.template-detail .service-card p {
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.template-detail .uploader-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+.template-detail .preview-img {
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.template-detail .related-template-card {
+    padding: 1rem;
+}
+
+
+/* Sidebar cards (Preview + Pricing) compact fix */
+.template-detail .sidebar-card {
+    padding: 1rem;         /* reduce padding */
+    border-radius: 12px;   /* smaller corners */
+    height: auto !important; /* prevent forced stretching */
+    min-height: unset !important;
+}
+
+/* Compact card style for detail pages */
+/* ---------------------------
+   Compact animated detail card
+   (drop-in replacement for .service-card on detail pages)
+   Place this at the END of main.css so it overrides earlier rules.
+   --------------------------- */
+
+.detail-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+/* subtle glossy sweep (copied from .service-card but toned down) */
+.detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.05), transparent);
+}
+
+/* keep content above the pseudo-element */
+.detail-card > * { position: relative; z-index: 1; }
+
+/* hover / focus animation (compact) */
+.detail-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+}
+.detail-card:hover::before { left: 100%; }
+
+/* utility tweaks that work well on detail page */
+.detail-card h6,
+.detail-card .fw-semibold,
+.detail-card .fw-bold {
+    margin: 0 0 0.35rem 0;
+}
+
+.template-detail .detail-card { 
+    /* extra specificity so when used on the template page it definitely overrides other rules */
+    padding: 0.95rem 1rem;
+    border-radius: 10px;
+}
+
+/* If you previously added .sidebar-card or .service-card overrides,
+   this ensures .detail-card used on template pages wins. */
+.template-detail .detail-card { height: auto !important; min-height: unset !important; }
+
+/* small responsive tweak */
+@media (max-width: 576px) {
+    .detail-card { padding: 0.85rem; }
+    .detail-card::before { left: -120%; width: 140%; }
+}
+
+/* Sidebar Improvements */
+.preview-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.preview-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.preview-container:hover .preview-overlay {
+    opacity: 1;
+}
+
+.preview-container:hover .preview-image {
+    transform: scale(1.05);
+}
+
+.preview-btn {
+    color: white;
+    font-size: 1.5rem;
+    text-decoration: none;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.preview-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.file-icon {
+    margin-bottom: 1rem;
+}
+
+.price-display {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 12px;
+    border: 2px dashed #e2e8f0;
+}
+
+.download-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.features-list {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #10b981;
+}
+
+.features-list li {
+    display: flex;
+    align-items: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+}
+
+.file-info {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* Card improvements */
+.card {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .stat-item {
+        padding: 0.75rem;
+    }
+    
+    .stat-number {
+        font-size: 1.25rem;
+    }
+    
+    .price-display {
+        padding: 1rem;
+    }
+    
+    .features-list {
+        padding: 1rem;
+    }
+}
+
+/* Lightbox style (if you add lightbox functionality later) */
+[data-lightbox] {
+    cursor: zoom-in;
+}
+
+/* Navbar toggler visibility fix */
+.navbar-toggler {
+    border: none;
+    background-color: rgba(37, 99, 235, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.3);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(37,99,235, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
