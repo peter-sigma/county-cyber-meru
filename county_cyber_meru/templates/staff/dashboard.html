@@ -314,9 +314,7 @@
                         </td>
                         <td>{{ task.customer_name }}</td>
                         <td>
-                            <span class="badge task-status-{{ task.status }}">
-                                {{ task.get_status_display }}
-                            </span>
+                            <div>{{ task.status }}</div>
                         </td>
                         <td>{{ task.created_at|date:"M d" }}</td>
                         <td>
