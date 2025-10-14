@@ -31,27 +31,135 @@
             </div>
         </div>
 
-        {% if categories %}
+        {% if service_categories %}
         <div class="row g-4">
-            {% for category in categories %}
+            {% for service_category in service_categories %}
             <div class="col-lg-4 col-md-6">
-                <div class="card service-card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="service-icon mb-3">
-                            <i class="fas fa-{{ category.icon|default:'cog' }} fa-3x text-primary"></i>
+                <div class="service-category-card h-100 border-0 shadow-sm">
+                    {% if service_category.cover_image %}
+                    <img src="{{ service_category.cover_image.url }}" class="card-img-top service-cover-image" alt="{{ service_category.name }}">
+                    {% else %}
+                    <div class="service-category-header" style="background-color: {{ service_category.color|default:'#0d6efd' }};">
+                        <i class="{{ service_category.icon|default:'fas fa-cog' }} fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if service_category.icon %}
+                            <div class="service-category-icon me-3">
+                                <i class="{{ service_category.icon }} fa-2x" style="color: {{ service_category.color|default:'#0d6efd' }};"></i>
+                            </div>
+                            {% endif %}
+                            <h4 class="fw-bold mb-0">{{ service_category.name }}</h4>
                         </div>
-                        <h4 class="fw-bold mb-3">{{ category.name }}</h4>
-                        {% if category.description %}
-                        <p class="text-secondary mb-4">{{ category.description }}</p>
-                        {% else %}
-                        <p class="text-secondary mb-4">Professional {{ category.name }} services</p>
+                        
+                        {% if service_category.description %}
+                        <p class="text-secondary mb-4">{{ service_category.description }}</p>
                         {% endif %}
                         
-                        <div class="mt-auto">
-                            <a href="{% url 'task_manager:task-submission' %}?category={{ category.id }}" 
+                        <!-- Sub-services Dropdown -->
+                        {% if service_category.active_subcategories %}
+                        <div class="sub-services-section">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary w-100 dropdown-toggle d-flex justify-content-between align-items-center" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown" 
+                                        aria-expanded="false"
+                                        id="dropdownButton{{ forloop.counter }}">
+                                    <span>
+                                        <i class="fas fa-list me-2"></i>
+                                        Available Services
+                                    </span>
+                                    <span class="badge bg-primary ms-2">{{ service_category.active_subcategories.count }}</span>
+                                </button>
+                                <div class="dropdown-menu w-100 p-3" aria-labelledby="dropdownButton{{ forloop.counter }}">
+                                    <h6 class="dropdown-header text-primary mb-2">
+                                        <i class="fas fa-cogs me-2"></i>
+                                        {{ service_category.name }} Services
+                                    </h6>
+                                    <div style="max-height: 400px; overflow-y: auto;">
+                                        {% for sub_service in service_category.active_subcategories %}
+                                        <div class="mb-3 p-3 border rounded">
+                                            <div class="d-flex align-items-start">
+                                                <!-- Sub-service Image/Icon -->
+                                                <div class="me-3 flex-shrink-0">
+                                                    {% if sub_service.image %}
+                                                    <img src="{{ sub_service.image.url }}" 
+                                                         class="rounded" 
+                                                         alt="{{ sub_service.name }}"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                    {% else %}
+                                                    <div class="rounded d-flex align-items-center justify-content-center bg-light border"
+                                                         style="width: 60px; height: 60px; color: {{ service_category.color|default:'#0d6efd' }};">
+                                                        <i class="{{ sub_service.icon|default:service_category.icon|default:'fas fa-cog' }} fa-lg"></i>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <!-- Sub-service Details -->
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                        <strong class="text-dark">{{ sub_service.name }}</strong>
+                                                        {% if sub_service.price %}
+                                                        <span class="badge bg-success ms-2">KSh {{ sub_service.price|floatformat:2 }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    {% if sub_service.description %}
+                                                    <p class="text-muted small mb-2">{{ sub_service.description }}</p>
+                                                    {% endif %}
+                                                    
+                                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                                        {% if sub_service.estimated_duration %}
+                                                        <small class="text-info">
+                                                            <i class="fas fa-clock me-1"></i>{{ sub_service.estimated_duration }}
+                                                        </small>
+                                                        {% endif %}
+                                                        {% if sub_service.template_link %}
+                                                        <small class="text-primary">
+                                                            <i class="fas fa-link me-1"></i>Template Available
+                                                        </small>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    <a href="{% url 'task_manager:task-submission' %}?category={{ sub_service.id }}" 
+                                                       class="btn btn-sm btn-primary w-100">
+                                                        <i class="fas fa-paper-plane me-1"></i>Request Service
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning text-center mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No specific services available under this category
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Quick Request Button -->
+                        <div class="mt-3">
+                            {% if service_category.active_subcategories %}
+                            <!-- Disabled when category has sub-services -->
+                            <button class="btn btn-outline-secondary w-100" disabled 
+                                    data-bs-toggle="tooltip" 
+                                    title="Please select a specific service from the dropdown above">
+                                <i class="fas fa-arrow-up me-2"></i>
+                                Choose from Services Above
+                            </button>
+                            {% else %}
+                            <!-- Enabled when category has no sub-services -->
+                            <a href="{% url 'task_manager:task-submission' %}?service_category={{ service_category.id }}" 
                                class="btn btn-primary w-100">
-                                <i class="fas fa-paper-plane me-2"></i>Request Service
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Request {{ service_category.name }}
                             </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -72,8 +180,46 @@
     </div>
 </section>
 
-<!-- How It Works Section -->
+<!-- Popular Services Section -->
+{% if popular_services %}
 <section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="text-gradient mb-3">Popular Services</h2>
+                <p class="lead">Our most requested services</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            {% for service in popular_services %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card popular-service-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="service-icon mb-3">
+                            <i class="{{ service.display_icon }} fa-2x" style="color: {{ service.display_color|default:'#0d6efd' }};"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">{{ service.name }}</h6>
+                        <small class="text-muted d-block mb-2">{{ service.service_category.name }}</small>
+                        {% if service.price %}
+                        <div class="price-tag mb-3">
+                            <span class="badge bg-success">KSh {{ service.price|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        <a href="{% url 'task_manager:task-submission' %}?category={{ service.id }}" 
+                           class="btn btn-sm btn-outline-primary w-100">
+                            Request Service
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- How It Works Section -->
+<section class="py-5">
     <div class="container">
         <div class="row mb-5">
             <div class="col-12 text-center">
@@ -126,18 +272,53 @@
     opacity: 0.8;
 }
 
-.service-card {
+.service-category-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #e9ecef;
+    overflow: visible !important;
 }
 
-.service-card:hover {
+.service-category-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
 }
 
-.service-icon {
-    color: #0d6efd;
+.service-cover-image {
+    height: 150px;
+    object-fit: cover;
+}
+
+.service-category-header {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.service-category-icon {
+    flex-shrink: 0;
+}
+
+/* Dropdown Improvements */
+.sub-services-section .dropdown-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+
+.sub-services-section .dropdown-menu > div {
+    max-height: 1000px;
+    overflow-y: auto;
+}
+
+.popular-service-card {
+    transition: transform 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.popular-service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
 }
 
 .step-number {
@@ -160,5 +341,92 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+.price-tag .badge {
+    font-size: 0.75em;
+}
+
+/* Disabled button styling */
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Scrollbar styling */
+.sub-services-section .dropdown-menu > div::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sub-services-section .dropdown-menu > div::-webkit-scrollbar-track {
+    background: #08ee17;
+}
+
+.sub-services-section .dropdown-menu > div::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.sub-services-section .dropdown-menu > div::-webkit-scrollbar-thumb:hover {
+    background: #00ff9d;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .service-category-card .d-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .service-category-icon {
+        margin-bottom: 1rem;
+    }
+    
+.sub-services-section .dropdown-menu > div {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+.sub-services-section .dropdown.show .dropdown-menu > div {
+    max-height: 1000px; /* expand to fit contents (adjust as needed) */
+    overflow-y: visible;
+}
+
+}
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enhance dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Close other dropdowns when one is opened
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('show.bs.dropdown', function() {
+            dropdowns.forEach(otherDropdown => {
+                if (otherDropdown !== dropdown) {
+                    const dropdownInstance = bootstrap.Dropdown.getInstance(otherDropdown.querySelector('.dropdown-toggle'));
+                    if (dropdownInstance) {
+                        dropdownInstance.hide();
+                    }
+                }
+            });
+        });
+    });
+
+    // Add tooltips to disabled buttons
+    const disabledButtons = document.querySelectorAll('.btn:disabled');
+    disabledButtons.forEach(button => {
+        new bootstrap.Tooltip(button);
+    });
+
+    // Prevent dropdown from closing when clicking inside
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+});
+</script>
 {% endblock %}

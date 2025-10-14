@@ -49,37 +49,32 @@
                         </div>
                         {% endif %}
 
-                        <!-- Selected Service Info -->
-                        {% if selected_category %}
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex align-items-center">
-                                {% if selected_category.image %}
-                                <img src="{{ selected_category.image.url }}" class="rounded me-3" alt="{{ selected_category.name }}" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% else %}
-                                <div class="rounded me-3 d-flex align-items-center justify-content-center bg-primary text-white" style="width: 50px; height: 50px;">
-                                    <i class="{{ selected_category.display_icon }}"></i>
-                                </div>
-                                {% endif %}
-                                <div>
-                                    <h6 class="mb-1">Selected Service: {{ selected_category.name }}</h6>
-                                    {% if selected_category.price %}
-                                    <p class="mb-0 text-success">
-                                        <strong>Price: KSh {{ selected_category.price|floatformat:2 }}</strong>
-                                    </p>
-                                    {% endif %}
-                                    {% if selected_category.estimated_duration %}
-                                    <small class="text-info">
-                                        <i class="fas fa-clock me-1"></i>{{ selected_category.estimated_duration }}
-                                    </small>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
                         <form method="post" enctype="multipart/form-data" novalidate>
                             {% csrf_token %}
                             
+                            <!-- Selected Service Info -->
+                            {% if selected_category %}
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex align-items-center">
+                                    {% if selected_category.image %}
+                                    <img src="{{ selected_category.image.url }}" class="rounded me-3" alt="{{ selected_category.name }}" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded me-3 d-flex align-items-center justify-content-center bg-primary text-white" style="width: 50px; height: 50px;">
+                                        <i class="{{ selected_category.display_icon }}"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-1">Selected Service: {{ selected_category.name }}</h6>
+                                        {% if selected_category.price %}
+                                        <p class="mb-0 text-success">
+                                            <strong>Price: KSh {{ selected_category.price|floatformat:2 }}</strong>
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
                             <!-- Form Fields -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -201,4 +196,30 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+}
+
+.service-hero-icon {
+    opacity: 0.8;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+</style>
 {% endblock %}

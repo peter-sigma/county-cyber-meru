@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.db.models import Q, Count
 from django.utils import timezone
-from .models import Task, TaskCategory, TaskUpdate, TaskAttachment
+from .models import Task, TaskCategory, TaskUpdate, TaskAttachment, ServiceCategory
 from .forms import TaskSubmissionForm, TaskStaffForm, TaskUpdateForm, TaskAttachmentForm
 from django.db.models import Count, Q
 from django.db.models import Case, When, IntegerField
@@ -62,90 +62,24 @@ def task_submission_success(request):
 @user_passes_test(is_staff_user)
 @login_required
 def task_list(request):
-    """List all tasks for staff"""
-    # Get filter parameters
-    status_filter = request.GET.get('status', '')
-    priority_filter = request.GET.get('priority', '')
-    category_filter = request.GET.get('category', '')
-    assigned_filter = request.GET.get('assigned', '')
-    date_filter = request.GET.get('date', '')
-    search_query = request.GET.get('q', '')
+    """Staff view of tasks"""
+    tasks = Task.objects.all().select_related('category', 'category__service_category', 'assigned_to')
     
-    tasks = Task.objects.all().select_related('category', 'assigned_to')
-    
-    # Apply filters
+    # Filtering
+    status_filter = request.GET.get('status')
     if status_filter:
         tasks = tasks.filter(status=status_filter)
-    if priority_filter:
-        tasks = tasks.filter(priority=priority_filter)
+    
+    category_filter = request.GET.get('category')
     if category_filter:
         tasks = tasks.filter(category_id=category_filter)
-    if assigned_filter == 'me':
-        tasks = tasks.filter(assigned_to=request.user)
-    elif assigned_filter == 'unassigned':
-        tasks = tasks.filter(assigned_to__isnull=True)
-    
-    # Date filters
-    today = timezone.now().date()
-    if date_filter:
-        if date_filter == 'today':
-            tasks = tasks.filter(created_at__date=today)
-        elif date_filter == 'yesterday':
-            yesterday = today - timezone.timedelta(days=1)
-            tasks = tasks.filter(created_at__date=yesterday)
-        elif date_filter == 'this_week':
-            start_of_week = today - timezone.timedelta(days=today.weekday())
-            tasks = tasks.filter(created_at__date__gte=start_of_week)
-        elif date_filter == 'last_week':
-            start_of_last_week = today - timezone.timedelta(days=today.weekday() + 7)
-            end_of_last_week = start_of_last_week + timezone.timedelta(days=6)
-            tasks = tasks.filter(created_at__date__range=[start_of_last_week, end_of_last_week])
-        elif date_filter == 'this_month':
-            tasks = tasks.filter(created_at__year=today.year, created_at__month=today.month)
-        elif date_filter == 'last_month':
-            first_day_of_current_month = today.replace(day=1)
-            last_day_of_last_month = first_day_of_current_month - timezone.timedelta(days=1)
-            first_day_of_last_month = last_day_of_last_month.replace(day=1)
-            tasks = tasks.filter(created_at__date__range=[first_day_of_last_month, last_day_of_last_month])
-    
-    # Search filter (apply after date filters)
-    if search_query:
-        tasks = tasks.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(customer_name__icontains=search_query) |
-            Q(customer_email__icontains=search_query)
-        )
-    
-    # Get counts for statistics
-    total_tasks = Task.objects.count()
-    pending_count = Task.objects.filter(status='pending').count()
-    completed_count = Task.objects.filter(status='completed').count()
-    overdue_count = Task.objects.filter(
-        due_date__lt=timezone.now(),
-        status__in=['pending', 'in_progress']
-    ).count()
     
     context = {
         'tasks': tasks,
-        'total_tasks': total_tasks,
-        'pending_count': pending_count,
-        'completed_count': completed_count,
-        'overdue_count': overdue_count,
         'status_choices': Task.STATUS_CHOICES,
-        'priority_choices': Task.PRIORITY_CHOICES,
-        'staff_members': User.objects.filter(is_staff=True),
-        'categories': TaskCategory.objects.filter(is_active=True),
-        'current_filters': {
-            'status': status_filter,
-            'priority': priority_filter,
-            'category': category_filter,
-            'assigned': assigned_filter,
-            'date': date_filter,
-        },
-        'title': 'Task Management'
     }
     return render(request, 'task_manager/task_list.html', context)
+
 
 
 
@@ -153,50 +87,13 @@ def task_list(request):
 @user_passes_test(is_staff_user)
 @login_required
 def task_detail(request, pk):
-    """View task details and manage task"""
+    """Detail view for a specific task"""
     task = get_object_or_404(Task, pk=pk)
-    
-    # Forms
-    staff_form = TaskStaffForm(instance=task)
-    update_form = TaskUpdateForm()
-    attachment_form = TaskAttachmentForm()
-    
-    if request.method == 'POST':
-        if 'update_status' in request.POST:
-            staff_form = TaskStaffForm(request.POST, instance=task)
-            if staff_form.is_valid():
-                staff_form.save()
-                messages.success(request, 'Task updated successfully!')
-                return redirect('task_manager:task-detail', pk=task.pk)
-        
-        elif 'add_update' in request.POST:
-            update_form = TaskUpdateForm(request.POST)
-            if update_form.is_valid():
-                update = update_form.save(commit=False)
-                update.task = task
-                update.user = request.user
-                update.save()
-                messages.success(request, 'Update added successfully!')
-                return redirect('task_manager:task-detail', pk=task.pk)
-        
-        elif 'add_attachment' in request.POST:
-            attachment_form = TaskAttachmentForm(request.POST, request.FILES)
-            if attachment_form.is_valid():
-                attachment = attachment_form.save(commit=False)
-                attachment.task = task
-                attachment.uploaded_by = request.user
-                attachment.save()
-                messages.success(request, 'Attachment added successfully!')
-                return redirect('task_manager:task-detail', pk=task.pk)
-    
     context = {
         'task': task,
-        'staff_form': staff_form,
-        'update_form': update_form,
-        'attachment_form': attachment_form,
-        'title': f'Task: {task.title}'
     }
     return render(request, 'task_manager/task_detail.html', context)
+
 
 @user_passes_test(is_staff_user)
 @login_required
@@ -328,9 +225,119 @@ def task_cancel(request, pk):
     })
 
 
-def services(request):
-    categories = TaskCategory.objects.filter(is_active=True)
-    return render(request, 'public/services.html', {
-        'categories': categories,
-        'title': 'Our Services'
-    })
+def services(request):  # Changed from services_view to match your URL pattern
+    """Display all service categories and their subcategories"""
+    try:
+        # Get all active service categories with their active subcategories
+        service_categories = ServiceCategory.objects.filter(
+            is_active=True
+        ).prefetch_related(
+            'subcategories'
+        ).order_by('order', 'name')
+        
+        # Debug info
+        print(f"Found {service_categories.count()} service categories")
+        for category in service_categories:
+            print(f"Category: {category.name}, Subcategories: {category.subcategories.filter(is_active=True).count()}")
+        
+        context = {
+            'service_categories': service_categories,
+        }
+        return render(request, 'public/services.html', context)
+        
+    except Exception as e:
+        print(f"Error in services_view: {e}")
+        context = {
+            'service_categories': [],
+            'error': str(e)
+        }
+        return render(request, 'public/services.html', context)
+
+
+
+def services_view(request):
+    """Display all service categories and their subcategories"""
+    try:
+        # Get all active service categories with their active subcategories
+        service_categories = ServiceCategory.objects.filter(
+            is_active=True
+        ).prefetch_related(
+            'subcategories'
+        ).order_by('order', 'name')
+        
+        # Debug info
+        print(f"Found {service_categories.count()} service categories")
+        for category in service_categories:
+            print(f"Category: {category.name}, Subcategories: {category.subcategories.filter(is_active=True).count()}")
+        
+        context = {
+            'service_categories': service_categories,
+        }
+        return render(request, 'public/services.html', context)
+        
+    except Exception as e:
+        print(f"Error in services_view: {e}")
+        context = {
+            'service_categories': [],
+            'error': str(e)
+        }
+        return render(request, 'public/services.html', context)
+
+def task_submission(request):
+    """Handle task submission with category pre-selection"""
+    category_id = request.GET.get('category') or request.POST.get('category')
+    service_category_id = request.GET.get('service_category') or request.POST.get('service_category')
+    
+    initial_data = {}
+    selected_category = None
+    
+    # Get the selected category if provided
+    if category_id:
+        try:
+            selected_category = get_object_or_404(TaskCategory, id=category_id, is_active=True)
+            initial_data['category'] = selected_category
+        except:
+            messages.error(request, "Invalid service category selected.")
+    
+    if request.method == 'POST':
+        form = TaskSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                task = form.save(commit=False)
+                
+                # Set category based on what was selected
+                if selected_category:
+                    task.category = selected_category
+                
+                # Set price from category if available
+                if not task.price and task.category and task.category.price:
+                    task.price = task.category.price
+                
+                task.save()
+                messages.success(request, f"Your task '{task.title}' has been submitted successfully! We'll contact you soon.")
+                return redirect('task_manager:task-submission-success')
+                
+            except Exception as e:
+                print(f"Error saving task: {e}")
+                messages.error(request, f"There was an error submitting your task: {str(e)}")
+        else:
+            # Form is invalid - show errors
+            print("Form errors:", form.errors)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        form = TaskSubmissionForm(initial=initial_data)
+    
+    context = {
+        'form': form,
+        'selected_category': selected_category,
+    }
+    
+    return render(request, 'task_manager/task_submission_form.html', context)  # Changed template
+
+def task_submission_success(request):
+    """Display success page after task submission"""
+    return render(request, 'task_manager/submission_success.html')
+
+
