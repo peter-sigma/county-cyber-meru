@@ -1,0 +1,212 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Service Categories - County Cyber Meru{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Our Service Categories</h1>
+                <p class="lead mb-4">Browse our professional service categories and choose the one that fits your needs.</p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="service-hero-icon">
+                    <i class="fas fa-concierge-bell fa-4x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Grid -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="text-gradient mb-3">Service Categories</h2>
+                <p class="lead">Choose a category to view available services</p>
+            </div>
+        </div>
+
+        {% if service_categories %}
+        <div class="row g-4">
+            {% for service_category in service_categories %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card service-category-card h-100 border-0 shadow-sm">
+                    {% if service_category.cover_image %}
+                    <img src="{{ service_category.cover_image.url }}" class="card-img-top service-cover-image" alt="{{ service_category.name }}">
+                    {% else %}
+                    <div class="service-category-header" style="background-color: {{ service_category.color|default:'#0d6efd' }};">
+                        <i class="{{ service_category.icon|default:'fas fa-cog' }} fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if service_category.icon %}
+                            <div class="service-category-icon me-3">
+                                <i class="{{ service_category.icon }} fa-2x" style="color: {{ service_category.color|default:'#0d6efd' }};"></i>
+                            </div>
+                            {% endif %}
+                            <h4 class="fw-bold mb-0">{{ service_category.name }}</h4>
+                        </div>
+                        
+                        {% if service_category.description %}
+                        <p class="text-secondary mb-4">{{ service_category.description }}</p>
+                        {% endif %}
+                        
+                        <!-- Services Count -->
+                        <div class="services-count mb-3">
+                            <span class="badge bg-primary">
+                                <i class="fas fa-list me-1"></i>
+                                {{ service_category.active_subcategories.count }} Services Available
+                            </span>
+                        </div>
+                        
+                        <!-- View Services Button -->
+                        <a href="{% url 'task_manager:services' service_category.id %}" 
+                           class="btn btn-primary w-100">
+                            <i class="fas fa-eye me-2"></i>
+                            View Services
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Service Categories Available</h4>
+                    <p class="text-muted">Please check back later for our service offerings.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="text-gradient mb-3">How It Works</h2>
+                <p class="lead">Simple steps to get your service request processed</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="step-number">1</div>
+                <h5 class="fw-bold mb-3">Choose Category</h5>
+                <p class="text-secondary">Browse our service categories and select one</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="step-number">2</div>
+                <h5 class="fw-bold mb-3">Select Service</h5>
+                <p class="text-secondary">Choose the specific service you need</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="step-number">3</div>
+                <h5 class="fw-bold mb-3">Submit Request</h5>
+                <p class="text-secondary">Fill out the form and we'll deliver your service</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h3 class="fw-bold mb-3">Need Help Choosing?</h3>
+        <p class="lead mb-4">Contact us for guidance on the right service for you</p>
+        <a href="{% url 'contact' %}" class="btn btn-light btn-lg me-3">
+            <i class="fas fa-phone me-2"></i>Contact Us
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-home me-2"></i>Back to Home
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+}
+
+.service-hero-icon {
+    opacity: 0.8;
+}
+
+.service-category-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.service-category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.service-cover-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.service-category-header {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.service-category-icon {
+    flex-shrink: 0;
+}
+
+.step-number {
+    width: 60px;
+    height: 60px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1rem auto;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.services-count .badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .service-category-card .d-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .service-category-icon {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}

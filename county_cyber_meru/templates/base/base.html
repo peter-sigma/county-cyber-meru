@@ -5,35 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}County Cyber Meru{% endblock %}</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link href="{% static 'css/main.css' %}" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- ===================== Navigation ===================== -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
                 {% if logo_available %}
-                <img src="{% static 'images/logo.png' %}" alt="County Cyber Meru" height="40">
+                    <img src="{% static 'images/logo.png' %}" alt="County Cyber Meru" height="40" class="me-2">
                 {% else %}
-                <i class="fas fa-print me-2"></i>
-                County Cyber Meru
+                    <i class="fas fa-print me-2 text-primary"></i>
+                    <span class="fw-bold">County Cyber Meru</span>
                 {% endif %}
             </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
@@ -41,77 +42,122 @@
                         <a class="nav-link" href="{% url 'about' %}">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'task_manager:services' %}">Services</a>
+                        <a class="nav-link" href="{% url 'task_manager:service-categories' %}">Services</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'contact' %}">Contact</a>
                     </li>
+
                     {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'staff:logout' %}">
-                            <i class="fas fa-sign-out-alt me-1"></i>Logout ({{ user.username }})
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        </li>
+
+                        {% if user.is_staff %}
+                        <!-- Staff-only Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="taskDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-tasks me-1"></i>Tasks
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="taskDropdown">
+                                <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}">
+                                    <i class="fas fa-list me-2"></i>All Tasks
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'task_manager:task-submission' %}" target="_blank">
+                                    <i class="fas fa-plus me-2"></i>Submit Task
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}?assigned=me">
+                                    <i class="fas fa-user me-2"></i>My Tasks
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}?assigned=unassigned">
+                                    <i class="fas fa-question me-2"></i>Unassigned
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'staff:logout' %}">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout ({{ user.username }})
+                            </a>
+                        </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'staff:login' %}">Staff Login</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'staff:login' %}">Staff Login</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
+    <!-- ===================== End Navigation ===================== -->
 
-    <!-- Main Content -->
-    <main>
-        <!-- Add to staff navigation -->
-{% if user.is_staff %}
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-tasks me-1"></i>Tasks
-        </a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}">
-                <i class="fas fa-list me-2"></i>All Tasks
-            </a></li>
-            <li><a class="dropdown-item" href="{% url 'task_manager:task-submission' %}" target="_blank">
-                <i class="fas fa-plus me-2"></i>Submit Task
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}?assigned=me">
-                <i class="fas fa-user me-2"></i>My Tasks
-            </a></li>
-            <li><a class="dropdown-item" href="{% url 'task_manager:task-list' %}?assigned=unassigned">
-                <i class="fas fa-question me-2"></i>Unassigned
-            </a></li>
-        </ul>
-    </li>
-    {% endif %}
+
+    <!-- ===================== Main Content ===================== -->
+    <main class="pt-5 mt-5">
         {% block content %}
         {% endblock %}
     </main>
+    <!-- ===================== End Main Content ===================== -->
 
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>County Cyber Meru</h5>
-                    <p>Professional Printing & Template Management Solutions</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2025 County Cyber Meru. All rights reserved.</p>
+
+<!-- ===================== Footer ===================== -->
+<footer class="bg-dark text-light pt-5 pb-3 mt-5">
+    <div class="container">
+        <div class="row gy-4">
+            <!-- About Section -->
+            <div class="col-md-4">
+                <h5 class="fw-bold mb-3">County Cyber Meru</h5>
+                <p>We provide professional printing, online services, and task management tools to make your work easier and faster.</p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-light fs-5"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-light fs-5"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-light fs-5"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-light fs-5"><i class="fab fa-linkedin-in"></i></a>
                 </div>
             </div>
+
+            <!-- Useful Links -->
+            <div class="col-md-4">
+                <h5 class="fw-bold mb-3">Useful Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'home' %}" class="text-light text-decoration-none d-block mb-2"><i class="fas fa-angle-right me-2"></i>Home</a></li>
+                    <li><a href="{% url 'about' %}" class="text-light text-decoration-none d-block mb-2"><i class="fas fa-angle-right me-2"></i>About Us</a></li>
+                    <li><a href="{% url 'task_manager:service-categories' %}" class="text-light text-decoration-none d-block mb-2"><i class="fas fa-angle-right me-2"></i>Our Services</a></li>
+                    <li><a href="{% url 'contact' %}" class="text-light text-decoration-none d-block mb-2"><i class="fas fa-angle-right me-2"></i>Contact</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'dashboard' %}" class="text-light text-decoration-none d-block mb-2"><i class="fas fa-angle-right me-2"></i>Dashboard</a></li>
+                    {% else %}
+                    <li><a href="{% url 'staff:login' %}" class="text-light text-decoration-none d-block mb-2"><i class="fas fa-angle-right me-2"></i>Staff Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-md-4">
+                <h5 class="fw-bold mb-3">Contact Us</h5>
+                <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-success"></i>Meru Town, Kenya</p>
+                <p class="mb-2"><i class="fas fa-phone me-2 text-success"></i><a href="tel:+254700000000" class="text-light text-decoration-none">+254 700 000 000</a></p>
+                <p class="mb-2"><i class="fas fa-envelope me-2 text-success"></i><a href="mailto:info@countycybermeru.com" class="text-light text-decoration-none">info@countycybermeru.com</a></p>
+                <p class="mb-0"><i class="fas fa-clock me-2 text-success"></i>Mon - Sat: 8:00am - 6:00pm</p>
+            </div>
         </div>
-    </footer>
+
+        <hr class="border-secondary my-4">
+
+        <div class="text-center">
+            <p class="mb-0">&copy; 2025 County Cyber Meru. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+<!-- ===================== End Footer ===================== -->
+
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Custom JS -->
     <script src="{% static 'js/main.js' %}"></script>
 </body>

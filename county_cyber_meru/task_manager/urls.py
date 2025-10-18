@@ -14,7 +14,10 @@ urlpatterns = [
     path('<int:pk>/', views.task_detail, name='task-detail'),
     
     # Task actions
-    path('services/', views.services, name='services'),
+    path('categories/', views.service_categories, name='service-categories'),
+    path('category/<int:category_id>/', views.services, name='services'),
+
+    
     path('create/', views.task_submission, name='task-create'),
     path('<int:pk>/assign-to-me/', views.task_assign_to_me, name='task-assign-to-me'),
     path('<int:pk>/mark-completed/', views.task_mark_completed, name='task-mark-completed'),

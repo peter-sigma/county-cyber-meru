@@ -175,6 +175,8 @@ def task_assign_to_me(request, pk):
     messages.success(request, f'Task #{task.id} assigned to you and marked as in progress.')
     return redirect('task_manager:task-detail', pk=task.pk)
 
+
+
 @user_passes_test(is_staff_user)
 @login_required
 def task_mark_completed(request, pk):
@@ -224,34 +226,6 @@ def task_cancel(request, pk):
         'title': f'Cancel Task: {task.title}'
     })
 
-
-def services(request):  # Changed from services_view to match your URL pattern
-    """Display all service categories and their subcategories"""
-    try:
-        # Get all active service categories with their active subcategories
-        service_categories = ServiceCategory.objects.filter(
-            is_active=True
-        ).prefetch_related(
-            'subcategories'
-        ).order_by('order', 'name')
-        
-        # Debug info
-        print(f"Found {service_categories.count()} service categories")
-        for category in service_categories:
-            print(f"Category: {category.name}, Subcategories: {category.subcategories.filter(is_active=True).count()}")
-        
-        context = {
-            'service_categories': service_categories,
-        }
-        return render(request, 'public/services.html', context)
-        
-    except Exception as e:
-        print(f"Error in services_view: {e}")
-        context = {
-            'service_categories': [],
-            'error': str(e)
-        }
-        return render(request, 'public/services.html', context)
 
 
 
@@ -340,4 +314,28 @@ def task_submission_success(request):
     """Display success page after task submission"""
     return render(request, 'task_manager/submission_success.html')
 
+
+def service_categories(request):
+    categories = ServiceCategory.objects.filter(is_active=True)
+    # .prefetch_related('active_subcategories')
+    context = {
+        'service_categories': categories,
+    }
+    return render(request, 'public/service_categories.html', context)
+
+
+
+def services(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id, is_active=True)
+    services = category.active_subcategories.all()
+    
+    # Get popular services from this category (you might need to adjust this logic)
+    # popular_services = services.filter(is_popular=True)[:4]
+    
+    context = {
+        'category': category,
+        'services': services,
+        # 'popular_services': popular_services,
+    }
+    return render(request, 'public/services.html', context)
 
